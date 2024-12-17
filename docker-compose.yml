@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: ./identity-provider   # Spécifie le répertoire où se trouve Dockerfile
+      dockerfile: Dockerfile         # Nom du Dockerfile (optionnel si c'est "Dockerfile")
+    container_name: node_app
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASS=postgres_password
+      - DB_NAME=identity_db
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: identity_db
+    ports:
+      - "5433:5432"  # Utilise le port 5433 local pour éviter les conflits
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
