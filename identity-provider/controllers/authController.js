@@ -1,35 +1,53 @@
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const UserModel = require('../models/UserModel');
 const CodePinModel = require('../models/CodePinModel');
+const Connection = require('../models/Connection');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-exports.registerUser = async (req, res) => {
+function hashPassword(password) {
+  const salt = process.env.SALT || 'default_salt'; // Salt fixe ou configurable
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
+
+exports.login = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { email, password } = req.body;
 
     // Vérifier que tous les champs sont remplis
-    if (!username || !email || !password) {
+    if (!email || !password) {
       return res.status(400).json({ message: 'Tous les champs sont requis.' });
     }
 
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await UserModel.findUserByEmail(email);
-    if (existingUser) {
-      return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+    // Trouver l'utilisateur
+    const user = await UserModel.getByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: 'Identifiants incorrects.' });
     }
 
-    // Hacher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Compter les tentatives échouées
+    const maxFailedAttempts = await Connection.getMaxFailedAttempts();
+    const failedAttempts = await Connection.countFailedAttempts(user.id_utilisateur);
+    if (failedAttempts >= maxFailedAttempts) {
+      return res.status(429).json({ message: 'Trop de tentatives échouées. Veuillez réessayer plus tard.' });
+    }
 
-    // Créer l'utilisateur
-    const newUser = await UserModel.createUser(username, email, hashedPassword);
+    // Vérifier le mot de passe
+    const isPasswordValid = await UserModel.verifyMotDePasse(email, password);
+    if (!isPasswordValid) {
+      // Enregistrer une tentative échouée
+      await Connection.record(user.id_utilisateur, false);
+      return res.status(401).json({ message: 'Identifiants incorrects.' });
+    }
+
+    // Enregistrer une connexion réussie
+    await Connection.record(user.id_utilisateur, true);
 
     // Générer un code PIN à 4 chiffres
     const codePin = Math.floor(1000 + Math.random() * 9000).toString();
 
     // Stocker le code PIN
-    await CodePinModel.createCodePin(codePin, newUser.id_utilisateur);
+    await CodePinModel.createCodePin(codePin, user.id_utilisateur);
 
     // Configurer le transporteur pour envoyer l'email
     const transporter = nodemailer.createTransport({
@@ -43,8 +61,8 @@ exports.registerUser = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Code de validation de votre inscription',
-      html: `<p>Bonjour ${username},</p>
+      subject: 'Code de validation de votre connexion',
+      html: `<p>Bonjour ${user.username},</p>
              <p>Voici votre code de validation pour finaliser votre connexion : <b>${codePin}</b></p>
              <p>Merci de l'utiliser dans les prochaines minutes.</p>`,
     };
@@ -52,7 +70,7 @@ exports.registerUser = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     res.status(201).json({
-      message: 'Utilisateur créé avec succès. Veuillez vérifier votre email pour valider votre inscription.',
+      message: 'Utilisateur connecté avec succès. Veuillez vérifier votre email pour valider votre connexion.',
     });
   } catch (error) {
     console.error(error.message);
@@ -60,7 +78,8 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Valider le code PIN pour finaliser l'inscription
+// Valid
+// er le code PIN pour finaliser la connexion
 exports.verifyPin = async (req, res) => {
   try {
     const { email, codePin } = req.body;
@@ -82,7 +101,7 @@ exports.verifyPin = async (req, res) => {
     // Invalider le code PIN
     await CodePinModel.invalidateCodePin(codePin);
 
-    res.status(200).json({ message: 'Inscription validée avec succès.' });
+    res.status(200).json({ message: 'Connexion validée avec succès.' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Erreur serveur.' });

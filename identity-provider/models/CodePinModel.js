@@ -15,6 +15,7 @@ class CodePinModel {
       FROM CodePin cp
       JOIN Utilisateur u ON u.id_utilisateur = cp.id_utilisateur
       WHERE u.email = $1
+      AND cp.dateCreation > NOW() - INTERVAL '90 seconds'
       ORDER BY cp.dateCreation DESC
       LIMIT 1
     `;

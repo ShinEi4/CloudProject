@@ -17,6 +17,12 @@ class Connection {
     );
     return parseInt(result.rows[0].failed_attempts, 10);
   }
+  static async getMaxFailedAttempts() {
+    const result = await pool.query(
+      `select limite from limiteConnexion limit 1`
+    );
+    return parseInt(result.rows[0].limit,10);
+  }
 }
 
 module.exports = Connection;
