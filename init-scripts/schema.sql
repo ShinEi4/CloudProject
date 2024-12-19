@@ -19,7 +19,7 @@ CREATE TABLE CodePin(
    id_codepin SERIAL,
    codepin VARCHAR(4) ,
    dateCreation TIMESTAMP,
-   is_valid SERIAL,
+   is_valid BOOLEAN,
    id_utilisateur INTEGER NOT NULL,
    PRIMARY KEY(id_codepin),
    FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
@@ -42,6 +42,7 @@ CREATE TABLE DureeSession(
 
 CREATE TABLE Session(
    id_session SERIAL,
+   adresse_ip VARCHAR(50) ,
    dateDebut TIMESTAMP,
    dateFin TIMESTAMP,
    id_dureesession INTEGER NOT NULL,
