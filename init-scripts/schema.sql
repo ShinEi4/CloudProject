@@ -42,8 +42,9 @@ CREATE TABLE DureeSession(
 );
 
 CREATE TABLE LimiteConnexion(
-   limite INTEGER,
-   PRIMARY KEY(limite)
+   id_limite SERIAL,
+   limite INTEGER NOT NULL default 3,
+   PRIMARY KEY(id_limite)
 );
 
 CREATE TABLE Session(

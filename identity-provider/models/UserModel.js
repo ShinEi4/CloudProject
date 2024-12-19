@@ -25,6 +25,15 @@ class UserModel {
     `;
     await pool.query(query, [email]);
   }
+
+  static async getByEmail(email) {
+    const result = await pool.query('SELECT * FROM Utilisateur WHERE email = $1', [email]);
+    return result.rows[0];
+  }
+
+  static async resetAttempts(userId) {
+    await pool.query(`DELETE FROM Connexion WHERE id_utilisateur = $1 AND is_valid = FALSE`, [userId]);
+  }
 }
 
 module.exports = UserModel;
