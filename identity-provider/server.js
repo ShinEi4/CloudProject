@@ -1,14 +1,24 @@
 const dotenv = require('dotenv');
-const sequelize = require('./config/db'); // Connexion DB
+const { Pool } = require('pg'); // Importer la bibliothèque pg
 const app = require('./app'); // Application Express configurée
 
 // Charger les variables d'environnement
 dotenv.config();
 
+// Configuration du pool de connexions PostgreSQL
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASS,
+  port: process.env.DB_PORT,
+});
+
 // Test de connexion à la base de données PostgreSQL
 async function startServer() {
   try {
-    await sequelize.authenticate();
+    // Vérifier la connexion avec PostgreSQL
+    await pool.connect();
     console.log('Connexion à PostgreSQL réussie !');
 
     const PORT = process.env.PORT || 3000;
@@ -20,3 +30,5 @@ async function startServer() {
 }
 
 startServer();
+
+module.exports = pool; // Exporter le pool pour l'utiliser dans d'autres modules

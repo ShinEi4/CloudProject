@@ -26,6 +26,7 @@ services:
       - "5433:5432"  # Utilise le port 5433 local pour éviter les conflits
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_data:
