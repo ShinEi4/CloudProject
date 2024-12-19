@@ -31,7 +31,7 @@ exports.registerUser = async (req, res) => {
     // Stocker le code PIN
     await CodePinModel.createCodePin(codePin, newUser.id_utilisateur);
 
-    // Envoyer l'email
+    // Configurer le transporteur pour envoyer l'email
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -45,7 +45,7 @@ exports.registerUser = async (req, res) => {
       to: email,
       subject: 'Code de validation de votre inscription',
       html: `<p>Bonjour ${username},</p>
-             <p>Voici votre code de validation pour finaliser votre inscription : <b>${codePin}</b></p>
+             <p>Voici votre code de validation pour finaliser votre connexion : <b>${codePin}</b></p>
              <p>Merci de l'utiliser dans les prochaines minutes.</p>`,
     };
 
