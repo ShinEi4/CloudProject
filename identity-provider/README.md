@@ -63,6 +63,11 @@ Créez un fichier .env dans le dossier identity-provider avec :
 Depuis la racine ProjetCloud, exécutez :
     docker-compose up --build
 
+Pour faire des requetes postgres via docker :
+    docker exec -it postgres_db psql -U postgres -d identity_db
+-- Afficher toutes les tables
+    \dt    
+
 📡 Routes Disponibles
 Ouvrez votre navigateur et accédez à l'URL suivante : http://localhost:3000/api-docs
 Vous verrez l'interface Swagger UI avec la documentation de vos routes.

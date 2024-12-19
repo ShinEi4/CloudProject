@@ -1,16 +1,10 @@
-const bcrypt = require('bcryptjs'); // Pour hacher les mots de passe
-const { Pool } = require('pg'); // Importer la bibliothèque pg
+const bcrypt = require('bcryptjs');
+const UserModel = require('../models/UserModel');
+const CodePinModel = require('../models/CodePinModel');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
-// Configuration de la connexion à PostgreSQL
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASS,
-  port: process.env.DB_PORT,
-});
-
-// Créer un utilisateur
+// Créer un utilisateur et envoyer un code PIN
 exports.registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -20,31 +14,76 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Tous les champs sont requis.' });
     }
 
-    // Vérifier si l'email existe déjà
-    const emailCheckQuery = 'SELECT * FROM Utilisateur WHERE email = $1';
-    const emailCheckResult = await pool.query(emailCheckQuery, [email]);
-
-    if (emailCheckResult.rows.length > 0) {
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await UserModel.findUserByEmail(email);
+    if (existingUser) {
       return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
     }
 
     // Hacher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Créer l'utilisateur dans la base de données
-    const insertUserQuery = `
-      INSERT INTO Utilisateur (username, email, mdp)
-      VALUES ($1, $2, $3)
-      RETURNING id_utilisateur, username, email
-    `;
-    const result = await pool.query(insertUserQuery, [username, email, hashedPassword]);
+    // Créer l'utilisateur
+    const newUser = await UserModel.createUser(username, email, hashedPassword);
 
-    // Retourner la réponse avec les données utilisateur
-    const newUser = result.rows[0];
-    res.status(201).json({
-      message: 'Utilisateur créé avec succès.',
-      user: newUser,
+    // Générer un code PIN à 4 chiffres
+    const codePin = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Stocker le code PIN
+    await CodePinModel.createCodePin(codePin, newUser.id_utilisateur);
+
+    // Envoyer l'email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Code de validation de votre inscription',
+      html: `<p>Bonjour ${username},</p>
+             <p>Voici votre code de validation pour finaliser votre inscription : <b>${codePin}</b></p>
+             <p>Merci de l'utiliser dans les prochaines minutes.</p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès. Veuillez vérifier votre email pour valider votre inscription.',
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+// Valider le code PIN pour finaliser l'inscription
+exports.verifyPin = async (req, res) => {
+  try {
+    const { email, codePin } = req.body;
+
+    // Vérifier que tous les champs sont remplis
+    if (!email || !codePin) {
+      return res.status(400).json({ message: 'Tous les champs sont requis.' });
+    }
+
+    // Vérifier si le code PIN est valide
+    const validCodePin = await CodePinModel.findValidCodePinByUser(email, codePin);
+    if (!validCodePin) {
+      return res.status(400).json({ message: 'Code PIN invalide ou expiré.' });
+    }
+
+    // Valider l'utilisateur
+    await UserModel.verifyUser(email);
+
+    // Invalider le code PIN
+    await CodePinModel.invalidateCodePin(codePin);
+
+    res.status(200).json({ message: 'Inscription validée avec succès.' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Erreur serveur.' });
