@@ -70,6 +70,36 @@ class UserModel {
   static async resetAttempts(userId) {
     await pool.query(`DELETE FROM Connexion WHERE id_utilisateur = $1 AND is_valid = FALSE`, [userId]);
   }
+
+  static async updateUser(userId, updates) {
+    const fields = [];
+    const values = [];
+    let index = 1;
+  
+    // Préparer les champs à mettre à jour dynamiquement
+    for (const [key, value] of Object.entries(updates)) {
+      fields.push(`${key} = $${index}`);
+      values.push(value);
+      index++;
+    }
+  
+    if (fields.length === 0) {
+      throw new Error('Aucune donnée à mettre à jour.');
+    }
+  
+    // Ajouter l'identifiant de l'utilisateur
+    values.push(userId);
+  
+    const query = `
+      UPDATE Utilisateur
+      SET ${fields.join(', ')}
+      WHERE id_utilisateur = $${index}
+      RETURNING *
+    `;
+  
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }  
 }
 
 module.exports = UserModel;

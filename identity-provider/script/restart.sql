@@ -1,26 +1,41 @@
--- Désactiver les contraintes de clé étrangère temporairement
-ALTER TABLE CodePin DROP CONSTRAINT CodePin_id_utilisateur_fkey;
-ALTER TABLE ModifUtilisateur DROP CONSTRAINT ModifUtilisateur_id_utilisateur_fkey;
-ALTER TABLE ModifUtilisateur DROP CONSTRAINT ModifUtilisateur_id_role_fkey;
-ALTER TABLE Connexion DROP CONSTRAINT Connexion_id_utilisateur_fkey;
-ALTER TABLE Session DROP CONSTRAINT Session_id_utilisateur_fkey;
-ALTER TABLE Session DROP CONSTRAINT Session_id_dureesession_fkey;
-ALTER TABLE Utilisateur DROP CONSTRAINT Utilisateur_id_role_fkey;
+-- Désactiver temporairement les contraintes de clé étrangère
+ALTER TABLE ModifUtilisateur DROP CONSTRAINT modifutilisateur_id_utilisateur_fkey;
+ALTER TABLE CodePin DROP CONSTRAINT codepin_id_utilisateur_fkey;
+ALTER TABLE Connexion DROP CONSTRAINT connexion_id_utilisateur_fkey;
+ALTER TABLE Session DROP CONSTRAINT session_id_utilisateur_fkey;
+ALTER TABLE Session DROP CONSTRAINT session_id_dureesession_fkey;
 
--- Supprimer les données dans l'ordre des dépendances
-TRUNCATE TABLE CodePin RESTART IDENTITY CASCADE;
-TRUNCATE TABLE ModifUtilisateur RESTART IDENTITY CASCADE;
-TRUNCATE TABLE Connexion RESTART IDENTITY CASCADE;
-TRUNCATE TABLE Session RESTART IDENTITY CASCADE;
-TRUNCATE TABLE Utilisateur RESTART IDENTITY CASCADE;
-TRUNCATE TABLE Role RESTART IDENTITY CASCADE;
-TRUNCATE TABLE DureeSession RESTART IDENTITY CASCADE;
+-- Supprimer les données de toutes les tables
+TRUNCATE TABLE 
+    ModifUtilisateur,
+    CodePin,
+    Connexion,
+    Session,
+    DureeSession,
+    LimiteConnexion,
+    Utilisateur
+RESTART IDENTITY CASCADE;
 
 -- Réactiver les contraintes de clé étrangère
-ALTER TABLE CodePin ADD CONSTRAINT CodePin_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur (id_utilisateur);
-ALTER TABLE ModifUtilisateur ADD CONSTRAINT ModifUtilisateur_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur (id_utilisateur);
-ALTER TABLE ModifUtilisateur ADD CONSTRAINT ModifUtilisateur_id_role_fkey FOREIGN KEY (id_role) REFERENCES Role (id_role);
-ALTER TABLE Connexion ADD CONSTRAINT Connexion_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur (id_utilisateur);
-ALTER TABLE Session ADD CONSTRAINT Session_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur (id_utilisateur);
-ALTER TABLE Session ADD CONSTRAINT Session_id_dureesession_fkey FOREIGN KEY (id_dureesession) REFERENCES DureeSession (id_dureesession);
-ALTER TABLE Utilisateur ADD CONSTRAINT Utilisateur_id_role_fkey FOREIGN KEY (id_role) REFERENCES Role (id_role);
+ALTER TABLE ModifUtilisateur ADD CONSTRAINT modifutilisateur_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
+ALTER TABLE CodePin ADD CONSTRAINT codepin_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
+ALTER TABLE Connexion ADD CONSTRAINT connexion_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
+ALTER TABLE Session ADD CONSTRAINT session_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
+ALTER TABLE Session ADD CONSTRAINT session_id_dureesession_fkey FOREIGN KEY (id_dureesession) REFERENCES DureeSession(id_dureesession);
+
+-- Réinitialiser les séquences associées aux colonnes SERIAL
+DO $$
+BEGIN
+    EXECUTE (
+        SELECT string_agg(
+            'ALTER SEQUENCE ' || pg_namespace.nspname || '.' || pg_class.relname || ' RESTART WITH 1;',
+            ' '
+        )
+        FROM pg_class
+        JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+        WHERE pg_class.relkind = 'S'
+    );
+END $$;
+
+-- Remettre les tables à zéro
+INSERT INTO LimiteConnexion (limite) VALUES (3);

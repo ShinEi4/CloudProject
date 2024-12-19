@@ -23,7 +23,46 @@ exports.registerUser = async (req, res) => {
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await UserModel.findUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ message: 'Cet email est déjà utilisé.' });
+      if (existingUser.is_valid) {
+        return res.status(400).json({ message: 'Cet email est déjà utilisé.' }); 
+      }
+
+      // Si l'utilisateur n'est pas validé, mettre à jour ses informations
+      const updates = {
+        username,  // Mettre à jour le nom d'utilisateur
+        mdp: await bcrypt.hash(password, 10), // Hacher le mot de passe avant de le mettre à jour        
+      };
+
+      // Utiliser la méthode updateUser pour modifier l'utilisateur existant
+      await UserModel.updateUser(existingUser.id_utilisateur, updates);
+
+      // Si l'utilisateur n'est pas validé, régénérer un code PIN
+      const codePin = Math.floor(1000 + Math.random() * 9000).toString();
+      await CodePinModel.createCodePin(codePin, existingUser.id_utilisateur);
+
+      // Envoyer un nouvel email avec le code PIN
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Code de validation de votre inscription',
+        html: `<p>Bonjour ${existingUser.username},</p>
+               <p>Voici votre nouveau code de validation : <b>${codePin}</b></p>
+               <p>Merci de l'utiliser dans les prochaines minutes.</p>`,
+      };
+
+      await transporter.sendMail(mailOptions);
+
+      return res.status(200).json({
+        message: 'Un nouveau code PIN a été envoyé à votre adresse email.',
+      });
     }
 
     // Hacher le mot de passe
