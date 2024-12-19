@@ -3,6 +3,7 @@ CREATE TABLE Utilisateur(
    username VARCHAR(50) ,
    email VARCHAR(70) ,
    mdp VARCHAR(255) ,
+   is_valid BOOLEAN,
    PRIMARY KEY(id_utilisateur)
 );
 
@@ -38,6 +39,11 @@ CREATE TABLE DureeSession(
    id_dureesession SERIAL,
    duree TIME,
    PRIMARY KEY(id_dureesession)
+);
+
+CREATE TABLE LimiteConnexion(
+   limite INTEGER,
+   PRIMARY KEY(limite)
 );
 
 CREATE TABLE Session(
