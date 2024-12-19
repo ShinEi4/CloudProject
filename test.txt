@@ -1,0 +1,7 @@
+SELECT cp.* 
+      FROM CodePin cp 
+      JOIN Utilisateur u ON u.id_utilisateur = cp.id_utilisateur 
+      WHERE u.email = 'ratsimbazafykenny@gmail.com'          
+        AND cp.dateCreation > NOW() - INTERVAL '90 seconds'
+        ORDER BY cp.dateCreation DESC
+      LIMIT 1
