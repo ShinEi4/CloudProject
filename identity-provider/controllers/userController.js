@@ -1,9 +1,16 @@
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const UserModel = require('../models/UserModel');
 const CodePinModel = require('../models/CodePinModel');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// Fonction utilitaire pour hacher un mot de passe
+function hashPassword(password) {
+  const salt = process.env.SALT || 'default_salt'; // Salt fixe ou configurable
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
+
+// Fonction d'inscription d'un utilisateur
 exports.registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -20,7 +27,8 @@ exports.registerUser = async (req, res) => {
     }
 
     // Hacher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = hashPassword(password);
+    console.log(hashedPassword);
 
     // Créer l'utilisateur
     const newUser = await UserModel.createUser(username, email, hashedPassword);
