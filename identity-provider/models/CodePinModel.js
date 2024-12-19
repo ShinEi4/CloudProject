@@ -18,7 +18,7 @@ class CodePinModel {
         AND cp.codepin = $2 
         AND cp.dateCreation > NOW() - INTERVAL '90 seconds'
     `;
-    const result = await pool.query(query, [codePin, email]);
+    const result = await pool.query(query, [email, codePin]);
     return result.rows[0];
   }
 
