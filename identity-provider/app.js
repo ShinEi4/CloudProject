@@ -4,7 +4,7 @@ const userRoutes = require('./routes/userRoutes');
 const limitRoutes = require('./routes/limitRoutes');
 const dureeSessionRoutes = require('./routes/dureesessionRoutes');
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authroutes');
 const pinRoutes = require('./routes/pinRoutes');
 const { swaggerUi, swaggerSpec } = require('./swagger');
 

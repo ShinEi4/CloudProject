@@ -17,7 +17,7 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./routes/homeRoutes.js'], // Chemin vers les fichiers de routes
+  apis: ['./routes/*.js'], // Chemin vers les fichiers de routes
 };
 
 // Initialisation de Swagger
