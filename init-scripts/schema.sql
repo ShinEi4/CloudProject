@@ -29,7 +29,7 @@ CREATE TABLE CodePin(
 CREATE TABLE Connexion(
    id_connexion SERIAL,
    dateConnexion TIMESTAMP,
-   is_valid BOOLEAN,
+   is_valid BOOLEAN DEFAULT FALSE,
    id_utilisateur INTEGER NOT NULL,
    PRIMARY KEY(id_connexion),
    FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
@@ -47,14 +47,24 @@ CREATE TABLE LimiteConnexion(
    PRIMARY KEY(id_limite)
 );
 
-CREATE TABLE Session(
-   id_session SERIAL,
-   adresse_ip VARCHAR(50) ,
-   dateDebut TIMESTAMP,
-   dateFin TIMESTAMP,
-   id_dureesession INTEGER NOT NULL,
-   id_utilisateur INTEGER NOT NULL,
-   PRIMARY KEY(id_session),
-   FOREIGN KEY(id_dureesession) REFERENCES DureeSession(id_dureesession),
-   FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
+CREATE TABLE Token (
+  id_token SERIAL PRIMARY KEY,
+  token VARCHAR(512) NOT NULL,
+  id_utilisateur INTEGER NOT NULL,
+  date_creation TIMESTAMP,
+  date_expiration TIMESTAMP,
+  is_valid BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
+
+CREATE TABLE reset_token (
+  id SERIAL PRIMARY KEY,
+  id_utilisateur INTEGER NOT NULL UNIQUE,
+  reset_token VARCHAR(512) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  is_valid BOOLEAN DEFAULT TRUE,
+  FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur)
+);
+
+INSERT INTO LimiteConnexion (limite) VALUES (3);
+INSERT INTO DureeSession (duree) VALUES ('01:00:00');

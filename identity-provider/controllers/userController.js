@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const UserModel = require('../models/UserModel');
 const CodePinModel = require('../models/CodePinModel');
 const nodemailer = require('nodemailer');
+const Connection = require('../models/Connection');
 require('dotenv').config();
 
 // Fonction utilitaire pour hacher un mot de passe
@@ -130,6 +131,36 @@ exports.verifyPin = async (req, res) => {
     await CodePinModel.invalidateCodePin(codePin);
 
     res.status(200).json({ message: 'Inscription validée avec succès.' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+exports.resetAttempts = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    // Vérifier que tous les champs sont remplis
+    if (!token) {
+      return res.status(400).json({ message: 'Token manquant.' });
+    }
+
+    // Vérifier la validité du token de réinitialisation
+    const iduser = await UserModel.verifyResetToken(token);
+    if (!iduser) {
+      return res.status(400).json({ message: 'Token de réinitialisation invalide ou expiré.' });
+    }
+
+    // Réinitialiser les tentatives de connexion
+    await Connection.record(iduser, true);
+
+    // Invalider le token de réinitialisation
+    await UserModel.invalidateResetToken(iduser);
+
+    res.status(200).json({
+      message: 'Les tentatives de connexion ont été réinitialisées avec succès.',
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Erreur serveur.' });

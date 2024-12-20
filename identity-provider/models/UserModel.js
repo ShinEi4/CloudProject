@@ -100,6 +100,66 @@ class UserModel {
     const result = await pool.query(query, values);
     return result.rows[0];
   }  
+
+  // Fonction pour sauvegarder le token de réinitialisation
+  static async saveResetToken(userId, resetToken) {
+    try {
+      // Requête SQL pour insérer ou mettre à jour le token de réinitialisation
+      const query = `
+        INSERT INTO reset_token (id_utilisateur, reset_token, created_at)
+        VALUES ($1, $2, NOW())
+        ON CONFLICT (id_utilisateur)
+        DO UPDATE SET reset_token = $2, created_at = NOW();
+      `;
+
+      const values = [userId, resetToken];
+
+      // Exécuter la requête
+      await pool.query(query, values);
+      console.log('Token de réinitialisation sauvegardé avec succès.');
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement du token de réinitialisation:', error.message);
+      throw new Error('Erreur lors de l\'enregistrement du token.');
+    }
+  }
+
+  static async verifyResetToken(token) {
+    const query = `
+      SELECT id_utilisateur
+      FROM reset_token
+      WHERE reset_token = $1 AND is_valid IS TRUE
+    `;
+    const values = [token];
+
+    try {
+      const result = await pool.query(query, values);
+      if (result.rowCount === 0) {
+        return null; // Token invalide ou expiré
+      }
+
+      return result.rows[0].id_utilisateur; // Retourne l'ID de l'utilisateur associé au token
+    } catch (error) {
+      console.error('Erreur lors de la vérification du token de réinitialisation:', error.message);
+      throw new Error('Erreur serveur.');
+    }
+  }
+
+  static async invalidateResetToken(id_utilisateur) {
+    const query = `
+      UPDATE reset_token
+      SET is_valid = FALSE
+      WHERE id_utilisateur = $1 AND is_valid = TRUE
+    `;
+    const values = [id_utilisateur];
+  
+    try {
+      const result = await pool.query(query, values);
+      return result.rowCount; // Nombre de tokens invalidés
+    } catch (error) {
+      console.error('Erreur lors de l\'invalidation des tokens de réinitialisation:', error.message);
+      throw new Error('Erreur serveur.');
+    }
+  }  
 }
 
 module.exports = UserModel;
