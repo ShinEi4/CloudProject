@@ -2,7 +2,7 @@ const express = require('express');
 const homeRoutes = require('./routes/homeRoutes');
 const userRoutes = require('./routes/userRoutes');
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/authroutes');
 const pinRoutes = require('./routes/pinRoutes');
 const { swaggerUi, swaggerSpec } = require('./swagger');
 
