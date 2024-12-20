@@ -1,5 +1,5 @@
 const express = require('express');
-const { initLimit, getLimit } = require('../controllers/limitController');
+const { initLimit} = require('../controllers/limitController');
 const router = express.Router();
 
 /**
@@ -47,29 +47,5 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.post('/init-limit', initLimit);
-
-/**
- * @swagger
- * /api/limit/get-limit:
- *   get:
- *     summary: Récupérer la limite de connexion actuelle
- *     tags: [Limit]
- *     responses:
- *       200:
- *         description: Limite récupérée avec succès
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 limite:
- *                   type: integer
- *                   example: 5
- *       404:
- *         description: Limite non trouvée
- *       500:
- *         description: Erreur serveur
- */
-router.get('/get-limit', getLimit);
 
 module.exports = router;
