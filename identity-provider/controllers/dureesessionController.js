@@ -17,7 +17,7 @@ exports.initSessionDuration = async (req, res) => {
     }
 
     // Mettre à jour la durée de session dans la base
-    const updatedSession = await DureeSessionModel.initUpdateSessionDuration(duration);
+    const updatedSession = await DureeSessionModel.initSessionDuration(duration);
 
     // Réponse succès
     res.status(200).json({

@@ -16,7 +16,7 @@ exports.initLimit = async (req, res) => {
     }
 
     // Mettre à jour la limite dans la base
-    const updatedLimit = await Limit.initUpdateLimit(limit);
+    const updatedLimit = await Limit.initLimit(limit);
 
     // Réponse succès
     res.status(200).json({
