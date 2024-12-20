@@ -1,16 +1,15 @@
 -- Désactiver temporairement les contraintes de clé étrangère
-ALTER TABLE ModifUtilisateur DROP CONSTRAINT modifutilisateur_id_utilisateur_fkey;
-ALTER TABLE CodePin DROP CONSTRAINT codepin_id_utilisateur_fkey;
-ALTER TABLE Connexion DROP CONSTRAINT connexion_id_utilisateur_fkey;
-ALTER TABLE Session DROP CONSTRAINT session_id_utilisateur_fkey;
-ALTER TABLE Session DROP CONSTRAINT session_id_dureesession_fkey;
+ALTER TABLE ModifUtilisateur DROP CONSTRAINT IF EXISTS modifutilisateur_id_utilisateur_fkey;
+ALTER TABLE CodePin DROP CONSTRAINT IF EXISTS codepin_id_utilisateur_fkey;
+ALTER TABLE Connexion DROP CONSTRAINT IF EXISTS connexion_id_utilisateur_fkey;
+ALTER TABLE Token DROP CONSTRAINT IF EXISTS token_id_utilisateur_fkey;
 
--- Supprimer les données de toutes les tables
+-- Supprimer les données de toutes les tables et réinitialiser les séquences
 TRUNCATE TABLE 
     ModifUtilisateur,
     CodePin,
     Connexion,
-    Session,
+    Token,
     DureeSession,
     LimiteConnexion,
     Utilisateur
@@ -20,11 +19,10 @@ RESTART IDENTITY CASCADE;
 ALTER TABLE ModifUtilisateur ADD CONSTRAINT modifutilisateur_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
 ALTER TABLE CodePin ADD CONSTRAINT codepin_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
 ALTER TABLE Connexion ADD CONSTRAINT connexion_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
-ALTER TABLE Session ADD CONSTRAINT session_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
-ALTER TABLE Session ADD CONSTRAINT session_id_dureesession_fkey FOREIGN KEY (id_dureesession) REFERENCES DureeSession(id_dureesession);
+ALTER TABLE Token ADD CONSTRAINT token_id_utilisateur_fkey FOREIGN KEY (id_utilisateur) REFERENCES Utilisateur(id_utilisateur);
 
 -- Réinitialiser les séquences associées aux colonnes SERIAL
-DO $$
+DO $$ 
 BEGIN
     EXECUTE (
         SELECT string_agg(
@@ -37,5 +35,6 @@ BEGIN
     );
 END $$;
 
--- Remettre les tables à zéro
+-- Remettre les tables à zéro avec les valeurs par défaut
 INSERT INTO LimiteConnexion (limite) VALUES (3);
+INSERT INTO DureeSession (duree) VALUES ('01:00:00');
