@@ -20,3 +20,13 @@ SELECT COUNT(*) AS failed_attempts
              WHERE id_utilisateur = 1
                AND is_valid = TRUE
          );
+
+UPDATE Connexion
+      SET is_valid = TRUE
+      WHERE id_utilisateur = 1
+        AND is_valid = FALSE 
+        AND dateConnexion = (
+          SELECT MAX(dateConnexion) 
+          FROM Connexion 
+          WHERE id_utilisateur = 1 AND is_valid = FALSE
+        );
