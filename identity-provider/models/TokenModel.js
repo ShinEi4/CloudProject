@@ -14,6 +14,26 @@ class TokenModel {
         throw new Error('Erreur lors de l\'insertion du token dans la base de données');
     }
   }
+
+  static async verifyToken(token) {
+    const query = `
+      SELECT id_utilisateur 
+      FROM Token 
+      WHERE token = $1 AND is_valid = TRUE AND date_expiration > NOW()
+    `;
+    const values = [token];
+
+    try {
+      const result = await pool.query(query, values);
+      if (result.rowCount === 0) {
+        return null; // Token invalide ou expiré
+      }
+      return result.rows[0].id_utilisateur; // Retourne l'ID utilisateur associé
+    } catch (error) {
+      console.error('Erreur lors de la vérification du token:', error.message);
+      throw new Error('Erreur serveur lors de la vérification du token.');
+    }
+  }
 }
 
 module.exports = TokenModel;
