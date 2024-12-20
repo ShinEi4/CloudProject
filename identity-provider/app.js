@@ -3,6 +3,7 @@ const homeRoutes = require('./routes/homeRoutes');
 const userRoutes = require('./routes/userRoutes');
 const limitRoutes = require('./routes/limitRoutes');
 const dureeSessionRoutes = require('./routes/dureesessionRoutes');
+const mailRoutes = require('./routes/mailRoutes');
 
 const authRoutes = require('./routes/authroutes');
 const pinRoutes = require('./routes/pinRoutes');
@@ -22,5 +23,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/pin', pinRoutes);
 app.use('/api/limit',limitRoutes);
 app.use('/api/duree',dureeSessionRoutes);
+app.use('/api/mail',mailRoutes);
 
 module.exports = app;
