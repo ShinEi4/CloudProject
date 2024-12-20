@@ -15,6 +15,19 @@ services:
     depends_on:
       - postgres
 
+  cryptomonnaie:
+    build:
+      context: ./Cryptomonnaie       # Répertoire contenant Dockerfile pour Crypto
+      dockerfile: Dockerfile         # Dockerfile du projet Crypto
+    container_name: cryptomonnaie_app
+    ports:
+      - "5000:80"    # Pour accéder au projet ASP.NET MVC via HTTP
+      - "5001:443"   # Pour accéder au projet ASP.NET MVC via HTTPS
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=postgres;Database=cryptomonnaie_db;User=postgres;Password=postgres_password;
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:15
     container_name: postgres_db
@@ -25,8 +38,10 @@ services:
     ports:
       - "5433:5432"  # Utilise le port 5433 local pour éviter les conflits
     volumes:
+      - data_protection_keys:/root/.aspnet/DataProtection-Keys
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_data:
+  data_protection_keys:

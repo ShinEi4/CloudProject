@@ -1,0 +1,26 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validation du Code PIN</title>
+    <link rel="stylesheet" href="~/assets/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Formulaire de validation du code PIN -->
+        <form id="pinForm" asp-controller="Home" asp-action="ValidatePin" class="form active">
+            <h2>Validation du Code PIN</h2>
+            <div class="form-group">
+                <label for="pin">Code PIN</label>
+                <input type="text" id="pin" name="pin" maxlength="4" pattern="[0-9]{4}" required>
+            </div>
+            <button type="submit" class="btn">Valider</button>
+        </form>
+    </div>
+</body>
+</html>
