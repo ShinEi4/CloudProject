@@ -1,7 +1,8 @@
 const express = require('express');
-const { registerUser, verifyPin, resetAttempts , updateUser } = require('../controllers/userController');
+const { registerUser, verifyPin, resetAttempts, updateUser } = require('../controllers/userController');
 
 const router = express.Router();
+
 /**
  * @swagger
  * tags:
@@ -11,7 +12,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * api/users/register:
+ * /api/users/register:
  *   post:
  *     summary: Créer un utilisateur et envoyer un code PIN
  *     tags: [Users]
@@ -46,7 +47,7 @@ router.post('/register', registerUser);
 
 /**
  * @swagger
- * api/users/verify-pin:
+ * /api/users/verify-pin:
  *   post:
  *     summary: Valider un code PIN
  *     tags: [Users]
@@ -77,7 +78,7 @@ router.post('/verify-pin', verifyPin);
 
 /**
  * @swagger
- * api/users/reset-attempts:
+ * /api/users/reset-attempts:
  *   get:
  *     summary: Réinitialiser les tentatives échouées
  *     tags: [Users]
@@ -88,9 +89,43 @@ router.post('/verify-pin', verifyPin);
  *         description: Erreur serveur
  */
 router.get('/reset-attempts', resetAttempts);
-router.post('/register', registerUser); // Créer un utilisateur et envoyer un code PIN
-router.post('/verify-pin', verifyPin);  // Valider le code PIN
-router.get('/reset-attempts', resetAttempts);  // Reinitialiser le nombre de tentatives
-router.put('/update', updateUser);  // Gestion du compte de user
+
+/**
+ * @swagger
+ * /api/users/update:
+ *   put:
+ *     summary: Mettre à jour les informations d'un utilisateur
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Nouveau nom d'utilisateur
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Nouveau email de l'utilisateur
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Nouveau mot de passe
+ *             example:
+ *               username: updateduser
+ *               email: updateduser@example.com
+ *               password: updatedpassword123
+ *     responses:
+ *       200:
+ *         description: Informations utilisateur mises à jour avec succès
+ *       400:
+ *         description: Erreur de validation
+ *       500:
+ *         description: Erreur serveur
+ */
+router.put('/update', updateUser);
 
 module.exports = router;
