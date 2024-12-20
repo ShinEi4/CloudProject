@@ -1,12 +1,12 @@
 # 📦 Projet API REST Node.js avec PostgreSQL
 
-Ce projet est une **API REST** développée avec **Node.js** et **Express.js**, en utilisant **Sequelize** comme ORM pour gérer une base de données **PostgreSQL**. Le projet suit une structure **MVC** (Model-View-Controller) pour une meilleure organisation et lisibilité.
+Ce projet est une **API REST** développée avec **Node.js** et **Express.js**, en utilisant **Pg** comme ORM pour gérer une base de données **PostgreSQL**. Le projet suit une structure **MVC** (Model-View-Controller) pour une meilleure organisation et lisibilité.
 
 ---
 
 ## **🚀 Fonctionnalités**
 
-- **Connexion à PostgreSQL** via Sequelize.
+- **Connexion à PostgreSQL** via pg (pool).
 - **Route de base** pour tester l'API.
 - **Structure MVC** claire :
   - **Models** : Définition des tables de la base.
@@ -59,7 +59,7 @@ Créez un fichier .env dans le dossier identity-provider avec :
     DB_PASS=postgres_password
     DB_NAME=identity_db
 
-3. Lancez les services avec Docker
+=> 3. Lancez les services API avec Docker
 Depuis la racine ProjetCloud, exécutez :
     docker-compose up --build
 
@@ -84,6 +84,18 @@ Pour documenter d'autres routes, ajoutez simplement des annotations Swagger dans
     */
     router.get('/api/users', getAllUsers);
 
+💻 Commandes Utiles
+Démarrer les conteneurs et rebuild les images:
+    docker-compose up --build
+Arrêter les conteneurs :
+    docker-compose down
+Rebuild des images Docker :
+    docker-compose build
+
+
+❗NB: Les collections postman sont presents dans collection.json
+
+
 🛠️ Technologies Utilisées
 Node.js : Environnement d'exécution JavaScript.
 Express.js : Framework minimaliste pour créer des API REST.
@@ -92,13 +104,6 @@ PostgreSQL : Base de données relationnelle.
 Docker & Docker Compose : Conteneurisation pour l'orchestration des services.
 Dotenv : Gestion des variables d'environnement.
 
-💻 Commandes Utiles
-Démarrer les conteneurs :
-    docker-compose up --build
-Arrêter les conteneurs :
-    docker-compose down
-Rebuild des images Docker :
-    docker-compose build
 
 ❗ Gestion des Erreurs
 Connexion échouée à PostgreSQL :
