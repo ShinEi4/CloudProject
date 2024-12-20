@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const UserModel = require('../models/UserModel');
+const TokenModel = require('../models/TokenModel');
 const CodePinModel = require('../models/CodePinModel');
 const nodemailer = require('nodemailer');
 const Connection = require('../models/Connection');
@@ -23,6 +24,9 @@ exports.registerUser = async (req, res) => {
 
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await UserModel.findUserByEmail(email);
+    
+    
+    
     if (existingUser) {
       if (existingUser.is_valid) {
         return res.status(400).json({ message: 'Cet email est déjà utilisé.' }); 
@@ -31,7 +35,7 @@ exports.registerUser = async (req, res) => {
       // Si l'utilisateur n'est pas validé, mettre à jour ses informations
       const updates = {
         username,  // Mettre à jour le nom d'utilisateur
-        mdp: await bcrypt.hash(password, 10), // Hacher le mot de passe avant de le mettre à jour        
+        mdp: hashPassword(password), // Hacher le mot de passe avant de le mettre à jour        
       };
 
       // Utiliser la méthode updateUser pour modifier l'utilisateur existant
@@ -65,6 +69,11 @@ exports.registerUser = async (req, res) => {
         message: 'Un nouveau code PIN a été envoyé à votre adresse email.',
       });
     }
+
+
+
+
+
 
     // Hacher le mot de passe
     const hashedPassword = hashPassword(password);
@@ -160,6 +169,56 @@ exports.resetAttempts = async (req, res) => {
 
     res.status(200).json({
       message: 'Les tentatives de connexion ont été réinitialisées avec succès.',
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+// Fonction pour mettre à jour un utilisateur
+exports.updateUser = async (req, res) => {
+  try {
+    // Récupérer le token depuis l'en-tête ou le corps de la requête
+    const token = req.headers.authorization?.split(' ')[1] || req.body.token;
+
+    if (!token) {
+      return res.status(401).json({ message: 'Token manquant ou invalide.' });
+    }
+    console.log("token");
+    console.log(token);
+    // Vérifier si le token est valide et récupérer l'ID utilisateur associé
+    const userId = await TokenModel.verifyToken(token);
+    if (!userId) {
+      return res.status(401).json({ message: 'Token invalide ou expiré.' });
+    }
+
+    const {username, email, mdp } = req.body; // On suppose que ces données viennent du corps de la requête
+
+    // Vérifier que les données nécessaires sont présentes
+    if (!username && !mdp) {
+      return res.status(400).json({ message: 'Au moins un champ doit être fourni pour la mise à jour.' });
+    }
+
+    // Si un mot de passe est fourni, il doit être haché avant d'être enregistré
+    let updates = {};
+    if (mdp) {
+      updates.mdp = hashPassword(mdp);
+    }
+
+    if (username) updates.username = username;    
+
+    // Utiliser la méthode updateUser du modèle pour effectuer la mise à jour
+    const updatedUser = await UserModel.updateUser(userId, updates);
+
+    // Si l'utilisateur n'a pas été trouvé ou mis à jour
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+    }
+
+    // Retourner la réponse
+    res.status(200).json({
+      message: 'Utilisateur mis à jour avec succès.'
     });
   } catch (error) {
     console.error(error.message);
