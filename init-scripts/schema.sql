@@ -66,5 +66,52 @@ CREATE TABLE reset_token (
   FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur)
 );
 
+CREATE TABLE Crypto(
+   id_crypto SERIAL,
+   nom_crypto VARCHAR(50)  NOT NULL,
+   PRIMARY KEY(id_crypto)
+);
+
+CREATE TABLE portefeuille(
+   id_portefeuille SERIAL,
+   id_utilisateur INTEGER NOT NULL,
+   PRIMARY KEY(id_portefeuille),
+   FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
+);
+
+CREATE TABLE Transaction(
+   id_transaction SERIAL,
+   type VARCHAR(50) ,
+   quantite NUMERIC(15,2)  ,
+   prix_unitaire NUMERIC(15,2)  ,
+   date_transaction TIMESTAMP,
+   is_validate BOOLEAN,
+   id_portefeuille INTEGER NOT NULL,
+   id_crypto INTEGER NOT NULL,
+   PRIMARY KEY(id_transaction),
+   FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille),
+   FOREIGN KEY(id_crypto) REFERENCES Crypto(id_crypto)
+);
+
+CREATE TABLE prix_crypto(
+   id_prix SERIAL,
+   prix NUMERIC(15,2)  ,
+   date_prix TIMESTAMP,
+   id_crypto INTEGER NOT NULL,
+   PRIMARY KEY(id_prix),
+   FOREIGN KEY(id_crypto) REFERENCES Crypto(id_crypto)
+);
+
+CREATE TABLE fond_transaction(
+   id_fond SERIAL,
+   type VARCHAR(50) ,
+   montant NUMERIC(15,2)  ,
+   date_transaction TIMESTAMP,
+   is_validate SERIAL,
+   id_portefeuille INTEGER NOT NULL,
+   PRIMARY KEY(id_fond),
+   FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille)
+);
+
 INSERT INTO LimiteConnexion (limite) VALUES (3);
 INSERT INTO DureeSession (duree) VALUES ('01:00:00');
