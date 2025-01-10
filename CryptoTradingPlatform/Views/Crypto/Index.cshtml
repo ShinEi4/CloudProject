@@ -1,0 +1,20 @@
+// Crypto/Index.cshtml
+@model IEnumerable<Crypto>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var crypto in Model)
+        {
+            <tr>
+                <td>@crypto.Id_Crypto</td>
+                <td>@crypto.Nom_Crypto</td>
+            </tr>
+        }
+    </tbody>
+</table>

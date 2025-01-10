@@ -1,0 +1,17 @@
+@model Utilisateur
+
+<form asp-action="Inscription">
+    <div>
+        <label>Nom d'utilisateur :</label>
+        <input asp-for="Username" />
+    </div>
+    <div>
+        <label>Email :</label>
+        <input asp-for="Email" type="email" />
+    </div>
+    <div>
+        <label>Mot de passe :</label>
+        <input asp-for="Mdp" type="password" />
+    </div>
+    <button type="submit">S'inscrire</button>
+</form>

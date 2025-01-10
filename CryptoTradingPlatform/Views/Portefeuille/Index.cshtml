@@ -1,0 +1,20 @@
+// Portefeuille/Index.cshtml
+@model IEnumerable<Portefeuille>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Utilisateur</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var portefeuille in Model)
+        {
+            <tr>
+                <td>@portefeuille.Id_Portefeuille</td>
+                <td>@portefeuille.Id_Utilisateur</td>
+            </tr>
+        }
+    </tbody>
+</table>
