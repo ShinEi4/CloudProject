@@ -82,7 +82,8 @@ CREATE TABLE portefeuille(
 CREATE TABLE Transaction(
    id_transaction SERIAL,
    type VARCHAR(50) ,
-   quantite NUMERIC(15,2)  ,
+   quantiteEntree NUMERIC(15,2)  ,
+   quantiteSortie NUMERIC(15,2) ,
    prix_unitaire NUMERIC(15,2)  ,
    date_transaction TIMESTAMP,
    is_validate BOOLEAN,
@@ -115,3 +116,19 @@ CREATE TABLE fond_transaction(
 
 INSERT INTO LimiteConnexion (limite) VALUES (3);
 INSERT INTO DureeSession (duree) VALUES ('01:00:00');
+
+CREATE VIEW portefeuille_crypto_utilisateur AS
+SELECT 
+   c.nom_crypto,
+   p.id_utilisateur,
+   COALESCE(SUM(t.quantiteEntree - t.quantiteSortie), 0) AS solde
+FROM 
+   portefeuille p
+JOIN 
+   Transaction t ON p.id_portefeuille = t.id_portefeuille
+JOIN 
+   Crypto c ON t.id_crypto = c.id_crypto
+GROUP BY 
+   c.nom_crypto, p.id_utilisateur;
+
+
