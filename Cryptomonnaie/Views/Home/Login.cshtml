@@ -1,30 +1,54 @@
-@{
-    Layout = null;
-}
-
 <!DOCTYPE html>
-<html lang="en">
+<html data-bs-theme="light" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion</title>
-    <link rel="stylesheet" href="~/assets/css/styles.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Login - Brand</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/Anton.css">
+    <link rel="stylesheet" href="assets/css/Exo%202.css">
+    <link rel="stylesheet" href="assets/css/Nunito.css">
+    <link rel="stylesheet" href="assets/css/Orbitron.css">
 </head>
-<body>
+
+<body class="bg-gradient-primary" style="background: #2a2d36;">
     <div class="container">
-        <!-- Formulaire de connexion -->
-        <form asp-controller="Home" asp-action="Login" method="post" class="form active">
-            <h2>Connexion</h2>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+        <div class="row justify-content-center">
+            <div class="col-md-9 col-lg-12 col-xl-10" style="background: #2a2d36;">
+                <div class="card shadow-lg o-hidden border-0 my-5">
+                    <div class="card-body p-0">
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-flex" style="background: #a09679;">
+                                <div class="flex-grow-1 bg-login-image" style="background: url(&quot;assets/img/dogs/minimalistic-still-life-assortment-with-cryptocurrency.jpg&quot;) bottom / cover no-repeat;"></div>
+                            </div>
+                            <div class="col-lg-6" style="background: #a09679;">
+                                <div class="p-5" style="background: #a09679;font-family: 'Exo 2', sans-serif;border-radius: 68px;">
+                                    <div class="text-center">
+                                        <h4 class="text-dark mb-4" style="font-family: Orbitron, sans-serif;">Welcome Back!</h4>
+                                    </div>
+                                    <form class="user">
+                                        <div class="mb-3"><input class="form-control form-control-user" type="email" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="Enter Email Address..." name="email" style="font-family: 'Exo 2', sans-serif;"></div>
+                                        <div class="mb-3"><input class="form-control form-control-user" type="password" id="exampleInputPassword" placeholder="Password" name="password" style="font-family: 'Exo 2', sans-serif;"></div>
+                                        <div class="mb-3">
+                                            <div class="custom-control custom-checkbox small"></div>
+                                        </div><button class="btn btn-primary d-block btn-user w-100" type="submit" style="font-family: Orbitron, sans-serif;background: #596069;border-color: #596069;">Login</button>
+                                        <hr>
+                                        <hr>
+                                    </form>
+                                    <div class="text-center"><a class="link-dark small" href="validate-password.html" style="font-family: 'Exo 2', sans-serif;border-color: #bfb699;">Forgot Password?</a></div>
+                                    <div class="text-center"><a class="link-dark small" href="register.html">Create an Account!</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Mot de passe</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn">Confirmer</button>
-        </form>
+        </div>
     </div>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/bs-init.js"></script>
+    <script src="assets/js/theme.js"></script>
 </body>
+
 </html>

@@ -18,16 +18,36 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\Github\CloudProject\Cryptomonnaie
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/Github/CloudProject/Cryptomonnaie/Views/Home/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+[D:/Github/CloudProject/Cryptomonnaie/Views/Home/index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxpbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/Github/CloudProject/Cryptomonnaie/Views/Home/Login.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxMb2dpbi5jc2h0bWw=
+[D:/Github/CloudProject/Cryptomonnaie/Views/Home/login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxsb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Github/CloudProject/Cryptomonnaie/Views/Home/PinValidation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQaW5WYWxpZGF0aW9uLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Github/CloudProject/Cryptomonnaie/Views/Home/profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxwcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Github/CloudProject/Cryptomonnaie/Views/Home/register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxyZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Github/CloudProject/Cryptomonnaie/Views/Page/login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFnZVxsb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Github/CloudProject/Cryptomonnaie/Views/Page/profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFnZVxwcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Github/CloudProject/Cryptomonnaie/Views/Page/register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFnZVxyZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Github/CloudProject/Cryptomonnaie/Views/Shared/Error.cshtml]
