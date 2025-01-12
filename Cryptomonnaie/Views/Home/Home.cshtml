@@ -1,0 +1,108 @@
+@{
+    @* Layout = "~/Views/Shared/_Layout.cshtml"; // Spécifiez ici le layout si nécessaire *@
+    ViewData["Title"] = "Dashboard - Brand";
+}
+
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/assets/css/Anton.css">
+    <link rel="stylesheet" href="~/assets/css/Exo%202.css">
+    <link rel="stylesheet" href="~/assets/css/Nunito.css">
+    <link rel="stylesheet" href="~/assets/css/Orbitron.css">
+    <link rel="stylesheet" href="~/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="~/assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="~/assets/fonts/fontawesome5-overrides.min.css">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark" style="background: #bfb699;">
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
+                    <div class="sidebar-brand-text mx-3"><span style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link active" href="@Url.Action("Index", "Home")"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Profile", "Account")"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Table", "Data")"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Table</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Login", "Account")"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Register", "Account")"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
+                </ul>
+                <div class="text-center d-none d-md-inline">
+                    <button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button>
+                </div>
+            </div>
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <nav class="navbar navbar-expand shadow mb-4 topbar static-top navbar-light" style="border-color: #596069;background: #596069;">
+                    <div class="container-fluid">
+                        <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                        <form class="d-none d-sm-inline-block me-auto ms-md-3 my-2 my-md-0 mw-100 navbar-search">
+                            <div class="input-group">
+                                <input class="bg-light form-control border-0 small" type="text" placeholder="Search for ..." style="font-family: 'Exo 2', sans-serif;">
+                                <button class="btn btn-dark py-0" type="button"><i class="fas fa-search"></i></button>
+                            </div>
+                        </form>
+                        <ul class="navbar-nav flex-nowrap ms-auto" style="background: #596069;">
+                            <li class="nav-item dropdown no-arrow mx-1">
+                                <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="badge bg-danger badge-counter">3+</span><i class="fas fa-bell fa-fw"></i></a>
+                                <div class="dropdown-menu dropdown-menu-end dropdown-list animated--grow-in">
+                                    <h6 class="dropdown-header">Alerts Center</h6>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <div class="me-3">
+                                            <div class="bg-primary icon-circle"><i class="fas fa-file-alt text-white"></i></div>
+                                        </div>
+                                        <div><span class="small text-gray-500">December 12, 2019</span>
+                                            <p>A new monthly report is ready to download!</p>
+                                        </div>
+                                    </a>
+                                    <!-- Add more alerts as needed -->
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown no-arrow mx-1">
+                                <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#"><span class="badge bg-danger badge-counter">7</span><i class="fas fa-envelope fa-fw"></i></a>
+                                <!-- Emails or messages -->
+                            </li>
+                            <li class="nav-item dropdown no-arrow">
+                                <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
+                                    <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
+                                        <span style="color: rgb(247, 246, 244);">KenZ Riv</span>&nbsp;
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                    <a class="dropdown-item" href="@Url.Action("Profile", "Account")"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                    <a class="dropdown-item" href="@Url.Action("Settings", "Account")"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Settings</a>
+                                    <a class="dropdown-item" href="@Url.Action("Logout", "Account")"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0" style="font-family: Orbitron, sans-serif;">Cryptocurrency chart</h3>
+                        <a class="btn btn-primary btn-sm d-none d-sm-inline-block" role="button" href="#">
+                            <i class="fas fa-download fa-sm text-white-50"></i>&nbsp;Generate Report
+                        </a>
+                    </div>
+                    <!-- Add your content here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/assets/js/chart.min.js"></script>
+    <script src="~/assets/js/bs-init.js"></script>
+    <script src="~/assets/js/theme.js"></script>
+</body>
+
+</html>
