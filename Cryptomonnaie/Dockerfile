@@ -14,7 +14,6 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
-EXPOSE 80
-EXPOSE 443
+EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "Cryptomonnaie.dll"]

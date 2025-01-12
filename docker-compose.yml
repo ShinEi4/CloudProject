@@ -21,8 +21,7 @@ services:
       dockerfile: Dockerfile         # Dockerfile du projet Crypto
     container_name: cryptomonnaie_app
     ports:
-      - "5000:80"    # Pour accéder au projet ASP.NET MVC via HTTP
-      - "5001:443"   # Pour accéder au projet ASP.NET MVC via HTTPS
+      - "5000:5000"      
     environment:
       - ConnectionStrings__DefaultConnection=Server=postgres;Database=cryptomonnaie_db;User=postgres;Password=postgres_password;
     depends_on:
