@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "ANp7/R7oAAE=",
+  "dgSpecHash": "eu92zcshXfk=",
   "success": true,
   "projectFilePath": "D:\\Github\\CloudProject\\Cryptomonnaie\\Cryptomonnaie.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Angelo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Angelo\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Angelo\\.nuget\\packages\\npgsql\\9.0.2\\npgsql.9.0.2.nupkg.sha512"
+  ],
   "logs": []
 }
