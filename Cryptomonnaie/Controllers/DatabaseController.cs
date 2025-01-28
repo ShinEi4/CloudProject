@@ -3,6 +3,7 @@ using System.Data;
 using System.Dynamic;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+using Microsoft.Extensions.Configuration;
 
 namespace Cryptomonnaie.Controllers;
 
@@ -12,10 +13,9 @@ public class DatabaseController : ControllerBase
 {
     private readonly string _connectionString;
 
-    public DatabaseController()
+    public DatabaseController(IConfiguration configuration)
     {
-        // Chaîne de connexion mise à jour pour PostgreSQL
-        _connectionString = "Host=localhost;Port=5433;Database=identity_db;Username=postgres;Password=postgres_password";
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
     }
 
     [HttpGet("test-connection")]

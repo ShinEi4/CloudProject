@@ -75,6 +75,7 @@ CREATE TABLE Crypto(
 CREATE TABLE portefeuille(
    id_portefeuille SERIAL,
    id_utilisateur INTEGER NOT NULL,
+   solde NUMERIC(15,2) NOT NULL,
    PRIMARY KEY(id_portefeuille),
    FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
@@ -131,4 +132,31 @@ JOIN
 GROUP BY 
    c.nom_crypto, p.id_utilisateur;
 
+-- Insertion d'un utilisateur initial
+INSERT INTO Utilisateur (username, email, mdp, is_valid) 
+VALUES ('admin', 'admin@example.com', 'admin123', true);
+
+-- Création d'un portefeuille pour l'utilisateur
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (1, 1000.00);
+
+-- Insertion des cryptomonnaies initiales
+INSERT INTO Crypto (nom_crypto) VALUES 
+('BTC'),
+('POLKADOT'),
+('DOJACOIN'),
+('DAMSCOIN'),
+('LOMEPCOIN'),
+('ETHEREUM'),
+('SOLANA'),
+('CRONOS'),
+('DODGECOIN');
+
+-- Insertion des prix initiaux
+INSERT INTO prix_crypto (prix, date_prix, id_crypto)
+SELECT 
+    100.00 as prix,
+    CURRENT_TIMESTAMP as date_prix,
+    id_crypto
+FROM Crypto;
 

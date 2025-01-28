@@ -14,6 +14,13 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
+
+# S'assurer que le dossier wwwroot existe
+RUN mkdir -p /app/wwwroot/Page
+
+# Copier les fichiers statiques
+COPY wwwroot /app/wwwroot/
+
 EXPOSE 5000
 
 ENTRYPOINT ["dotnet", "Cryptomonnaie.dll"]

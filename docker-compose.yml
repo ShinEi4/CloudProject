@@ -17,15 +17,19 @@ services:
 
   cryptomonnaie:
     build:
-      context: ./Cryptomonnaie       # Répertoire contenant Dockerfile pour Crypto
-      dockerfile: Dockerfile         # Dockerfile du projet Crypto
+      context: ./Cryptomonnaie
+      dockerfile: Dockerfile
     container_name: cryptomonnaie_app
     ports:
-      - "5000:5000"      
+      - "5000:5000"
     environment:
-      - ConnectionStrings__DefaultConnection=Server=postgres;Database=cryptomonnaie_db;User=postgres;Password=postgres_password;
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=identity_db;User Id=postgres;Password=postgres_password;
+    volumes:
+      - ./Cryptomonnaie/wwwroot:/app/wwwroot
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:15
@@ -35,11 +39,16 @@ services:
       POSTGRES_PASSWORD: postgres_password
       POSTGRES_DB: identity_db
     ports:
-      - "5433:5432"  # Utilise le port 5433 local pour éviter les conflits
+      - "5433:5432"
     volumes:
       - data_protection_keys:/root/.aspnet/DataProtection-Keys
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
