@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Cryptomonnaie")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed6cb276fbc919d6c1c17861a41d5ccc070e5545")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6d846ae2e5dbeb75ee2dd4c86a8953a428eb094e")]
 [assembly: System.Reflection.AssemblyProductAttribute("Cryptomonnaie")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Cryptomonnaie")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

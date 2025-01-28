@@ -1,0 +1,10 @@
+bin/
+obj/
+node_modules/
+*.suo
+*.user
+_ReSharper.*
+*.sln.docstates
+.vs/
+.vscode/
+*.log 

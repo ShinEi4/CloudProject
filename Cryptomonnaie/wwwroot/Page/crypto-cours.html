@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Cours des Cryptomonnaies</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Anton.css">
+    <link rel="stylesheet" href="../assets/css/Exo%202.css">
+    <link rel="stylesheet" href="../assets/css/Nunito.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+    <style>
+        .crypto-card {
+            transition: all 0.3s ease;
+        }
+        .crypto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .progress {
+            height: 25px;
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-dark mb-0" style="font-family: Orbitron, sans-serif;">
+                <i class="fas fa-chart-line me-2"></i>Cours des Cryptomonnaies
+            </h3>
+            <div class="text-end">
+                <small class="text-muted" id="lastUpdate"></small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card shadow mb-4 crypto-card">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="text-dark fw-bold m-0">
+                            <i class="fas fa-sync-alt me-2"></i>Mise à jour en temps réel (10 secondes)
+                        </h6>
+                    </div>
+                    <div class="card-body" id="cryptoList">
+                        <!-- Les cryptomonnaies seront injectées ici dynamiquement -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        function updateCryptoPrices() {
+            fetch('/api/crypto/prices')
+                .then(response => response.json())
+                .then(data => {
+                    const cryptoList = document.getElementById('cryptoList');
+                    cryptoList.innerHTML = '';
+                    
+                    data.forEach(crypto => {
+                        const cryptoElement = document.createElement('div');
+                        cryptoElement.className = 'mb-4';
+                        cryptoElement.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h4 class="small fw-bold mb-0">${crypto.crypto}</h4>
+                                <div class="text-end">
+                                    <span class="fw-bold">${crypto.prix.toFixed(2)}€</span>
+                                    <span class="ms-2 ${crypto.variation >= 0 ? 'text-success' : 'text-danger'}">
+                                        ${crypto.variation >= 0 ? '+' : ''}${crypto.variation.toFixed(2)}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar ${crypto.cssClass}" 
+                                     role="progressbar" 
+                                     style="width: ${crypto.percentage}%;" 
+                                     aria-valuenow="${crypto.percentage}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100"
+                                     data-crypto="${crypto.crypto}">
+                                    ${crypto.percentage.toFixed(1)}%
+                                </div>
+                            </div>
+                        `;
+                        cryptoList.appendChild(cryptoElement);
+                    });
+
+                    // Mettre à jour l'horodatage
+                    document.getElementById('lastUpdate').textContent = 
+                        `Dernière mise à jour : ${new Date().toLocaleTimeString()}`;
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('cryptoList').innerHTML = `
+                        <div class="alert alert-danger">
+                            Erreur lors de la récupération des données: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+
+        // Mettre à jour toutes les 10 secondes
+        setInterval(updateCryptoPrices, 10000);
+
+        // Première mise à jour
+        updateCryptoPrices();
+    </script>
+</body>
+
+</html> 

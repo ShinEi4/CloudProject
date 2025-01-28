@@ -15,7 +15,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        return File("~/Page/index.html", "text/html");
     }
 
     public IActionResult Privacy()
@@ -31,6 +31,11 @@ public class HomeController : Controller
     public IActionResult Home()
     {
         return View();
+    }
+
+    public IActionResult Cours()
+    {
+        return File("~/Page/crypto-cours.html", "text/html");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
