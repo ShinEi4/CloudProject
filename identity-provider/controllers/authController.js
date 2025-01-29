@@ -171,7 +171,8 @@ exports.verifyPin = async (req, res) => {
     // Répondre avec le token
     res.status(200).json({
       message: 'Connexion validée avec succès.',
-      token, // Le token est retourné ici
+      userId: user.id_utilisateur,
+      token,
     });
   } catch (error) {
     console.error(error.message);

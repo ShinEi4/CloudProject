@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Cryptomonnaie.Controllers
 {
@@ -160,6 +161,31 @@ namespace Cryptomonnaie.Controllers
                 }
 
                 var responseContent = await verifyResponse.Content.ReadAsStringAsync();
+                var response = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                // Extract userId from the response
+                if (response.TryGetProperty("userId", out JsonElement userIdElement))
+                {
+                    var userId = userIdElement.GetInt32();
+                    Console.WriteLine($"Creating wallet for user ID: {userId}");
+                    _logger.LogInformation("Creating wallet for user ID: {UserId}", userId);
+                    var loggerFactory = HttpContext.RequestServices.GetService<ILoggerFactory>();
+                    if (loggerFactory != null)
+                    {
+                        var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
+                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger);
+                        await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
+                        Console.WriteLine($"Wallet created successfully for user ID: {userId}");
+                        _logger.LogInformation("Wallet created successfully for user ID: {UserId}", userId);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No userId found in response");
+                    Console.WriteLine($"Response content: {responseContent}");
+                    _logger.LogWarning("No userId found in response. Content: {Content}", responseContent);
+                }
+
                 return Ok(JsonSerializer.Deserialize<object>(responseContent));
             }
             catch (Exception ex)
