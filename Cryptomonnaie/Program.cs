@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddControllersWithViews();
 builder.Services.AddHostedService<CryptoService>();
+builder.Services.AddHttpClient();
 
 // Configurer CORS si nécessaire
 builder.Services.AddCors(options =>
