@@ -1,5 +1,5 @@
 const express = require('express');
-const { login, verifyPin } = require('../controllers/authController');
+const { login, verifyPin, verifyToken } = require('../controllers/authController');
 const router = express.Router();
 
 /**
@@ -87,5 +87,21 @@ router.post('/login', login);
  *         description: Erreur serveur
  */
 router.post('/verify-pin', verifyPin);
+
+/**
+ * @swagger
+ * /api/auth/verify-token:
+ *   get:
+ *     summary: Vérifier le token d'authentification
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Token vérifié avec succès
+ *       401:
+ *         description: Token invalide
+ *       500:
+ *         description: Erreur serveur
+ */
+router.get('/verify-token', verifyToken);
 
 module.exports = router;

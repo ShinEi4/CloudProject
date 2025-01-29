@@ -178,3 +178,34 @@ exports.verifyPin = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
+
+exports.verifyToken = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1] || req.body.token;
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        // Verify the token and get user info
+        const userId = await TokenModel.verifyToken(token);
+        if (!userId) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+
+        // Get user info
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return user info (excluding sensitive data)
+        res.json({
+            id: user.id_utilisateur,
+            email: user.email,
+            username: user.username
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

@@ -75,7 +75,7 @@ namespace Cryptomonnaie.Services
                         insertCmd.Parameters.AddWithValue("@id_crypto", crypto.id);
 
                         await insertCmd.ExecuteNonQueryAsync();
-                        _logger.LogInformation($"Nouveau prix pour {crypto.nom}: {newPrice}");
+                        // _logger.LogInformation($"Nouveau prix pour {crypto.nom}: {newPrice}");
                     }
                 }
             }

@@ -160,6 +160,13 @@ class UserModel {
       throw new Error('Erreur serveur.');
     }
   }  
+
+  // Add this method to the UserModel class
+  static async findById(userId) {
+    const query = `SELECT * FROM Utilisateur WHERE id_utilisateur = $1`;
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+  }
 }
 
 module.exports = UserModel;
