@@ -139,7 +139,14 @@ exports.verifyPin = async (req, res) => {
     // Invalider le code PIN
     await CodePinModel.invalidateCodePin(codePin);
 
-    res.status(200).json({ message: 'Inscription validée avec succès.' });
+    // Récupérer l'utilisateur
+    const user = await UserModel.findUserByEmail(email);
+
+    // Répondre avec le token
+    res.status(200).json({
+      message: 'Inscription validee avec succes.',
+      userId: user.id_utilisateur,
+    });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Erreur serveur.' });
