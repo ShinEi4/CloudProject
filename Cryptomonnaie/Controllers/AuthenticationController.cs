@@ -109,6 +109,65 @@ namespace Cryptomonnaie.Controllers
                 return StatusCode(500, "An error occurred while getting user info");
             }
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                var registerContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        username = request.Username,
+                        email = request.Email, 
+                        password = request.Password 
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var registerResponse = await _httpClient.PostAsync("http://node_app:3000/api/users/register", registerContent);
+                
+                if (!registerResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await registerResponse.Content.ReadAsStringAsync();
+                    return StatusCode((int)registerResponse.StatusCode, errorContent);
+                }
+
+                return Ok(new { message = "Please check your email for the PIN code" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during registration process");
+                return StatusCode(500, "An error occurred during the registration process");
+            }
+        }
+
+        [HttpPost("verify-registration-pin")]
+        public async Task<IActionResult> VerifyRegistrationPin([FromBody] VerifyPinRequest request)
+        {
+            try
+            {
+                var verifyContent = new StringContent(
+                    JsonSerializer.Serialize(new { email = request.Email, codePin = request.Pin }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var verifyResponse = await _httpClient.PostAsync("http://node_app:3000/api/users/verify-pin", verifyContent);
+
+                if (!verifyResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await verifyResponse.Content.ReadAsStringAsync();
+                    return StatusCode((int)verifyResponse.StatusCode, errorContent);
+                }
+
+                var responseContent = await verifyResponse.Content.ReadAsStringAsync();
+                return Ok(JsonSerializer.Deserialize<object>(responseContent));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during registration PIN verification");
+                return StatusCode(500, "An error occurred during registration PIN verification");
+            }
+        }
     }
 
     public class LoginRequest
@@ -121,5 +180,12 @@ namespace Cryptomonnaie.Controllers
     {
         public string Email { get; set; }
         public string Pin { get; set; }
+    }
+
+    public class RegisterRequest
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
 } 

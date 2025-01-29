@@ -25,7 +25,7 @@ public class HomeController : Controller
 
     public IActionResult Register()
     {
-        return View();
+        return File("~/Page/register.html", "text/html");
     }
 
     public IActionResult Home()

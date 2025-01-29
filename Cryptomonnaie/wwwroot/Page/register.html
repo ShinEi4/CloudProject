@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>Login - Brand</title>
+    <title>Register - Brand</title>
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/Anton.css">
     <link rel="stylesheet" href="../assets/css/Exo%202.css">
@@ -12,60 +12,62 @@
     <link rel="stylesheet" href="../assets/css/Orbitron.css">
 </head>
 
-
 <body class="bg-gradient-primary" style="background: #2a2d36;">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-9 col-lg-12 col-xl-10" style="background: #2a2d36;">
+            <div class="col-md-9 col-lg-12 col-xl-10">
                 <div class="card shadow-lg o-hidden border-0 my-5">
                     <div class="card-body p-0">
                         <div class="row">
                             <div class="col-lg-6 d-none d-lg-flex" style="background: #a09679;">
-                                <div class="flex-grow-1 bg-login-image" 
-                                     style="background-image: url('../assets/img/dogs/minimalistic-still-life-assortment-with-cryptocurrency.jpg'); 
-                                            background-position: bottom; 
-                                            background-size: cover; 
-                                            background-repeat: no-repeat;">
+                                <div class="flex-grow-1 bg-register-image" 
+                                     style="background-image: url('../assets/img/dogs/minimalistic-still-life-assortment-with-cryptocurrency.jpg');
+                                            background-position: center;
+                                            background-size: cover;">
                                 </div>
                             </div>
                             <div class="col-lg-6" style="background: #a09679;">
-                                <div class="p-5" style="background: #a09679;font-family: 'Exo 2', sans-serif;border-radius: 68px;">
+                                <div class="p-5" style="background: #a09679;">
                                     <div class="text-center">
-                                        <h4 class="text-dark mb-4" style="font-family: Orbitron, sans-serif;">Welcome Back!</h4>
+                                        <h4 class="text-dark mb-4" style="font-family: Orbitron, sans-serif;">Create an Account!</h4>
                                     </div>
-                                    <div id="loginForm">
+                                    <div id="registerForm">
                                         <div class="mb-3">
-                                            <input class="form-control form-control-user" type="email" id="email" 
-                                                   aria-describedby="emailHelp" placeholder="Enter Email Address..." 
-                                                   name="email" style="font-family: 'Exo 2', sans-serif;">
-                                        </div>
-                                        <div class="mb-3">
-                                            <input class="form-control form-control-user" type="password" id="password" 
-                                                   placeholder="Password" name="password" 
+                                            <input class="form-control form-control-user" type="text" 
+                                                   id="username" placeholder="Username" name="username" 
                                                    style="font-family: 'Exo 2', sans-serif;">
                                         </div>
-                                        <button onclick="login()" class="btn btn-primary d-block btn-user w-100" 
-                                                style="font-family: Orbitron, sans-serif;background: #596069;border-color: #596069;">
-                                            Login
+                                        <div class="mb-3">
+                                            <input class="form-control form-control-user" type="email" 
+                                                   id="email" placeholder="Email Address" name="email" 
+                                                   style="font-family: 'Exo 2', sans-serif;">
+                                        </div>
+                                        <div class="mb-3">
+                                            <input class="form-control form-control-user" type="password" 
+                                                   id="password" placeholder="Password" name="password" 
+                                                   style="font-family: 'Exo 2', sans-serif;">
+                                        </div>
+                                        <button class="btn btn-primary d-block btn-user w-100" type="button" 
+                                                onclick="register()" style="font-family: Orbitron, sans-serif;background: #596069;border-color: #596069;">
+                                            Register Account
                                         </button>
                                         <hr>
                                     </div>
                                     <div id="pinForm" style="display: none;">
                                         <div class="mb-3">
-                                            <input class="form-control form-control-user" type="text" id="pin" 
-                                                   placeholder="Enter PIN from Email" name="pin" 
+                                            <input class="form-control form-control-user" type="text" 
+                                                   id="pin" placeholder="Enter PIN from Email" name="pin" 
                                                    style="font-family: 'Exo 2', sans-serif;">
                                         </div>
-                                        <button onclick="verifyPin()" class="btn btn-primary d-block btn-user w-100" 
-                                                style="font-family: Orbitron, sans-serif;background: #596069;border-color: #596069;">
+                                        <button class="btn btn-primary d-block btn-user w-100" type="button" 
+                                                onclick="verifyPin()" style="font-family: Orbitron, sans-serif;background: #596069;border-color: #596069;">
                                             Verify PIN
                                         </button>
                                         <hr>
                                     </div>
                                     <div class="text-center">
-                                        <a class="link-dark small" href="/Home/Register" 
-                                           style="font-family: 'Exo 2', sans-serif;">
-                                            Create an Account!
+                                        <a class="link-dark small" href="/Home/Login" style="font-family: 'Exo 2', sans-serif;">
+                                            Already have an account? Login!
                                         </a>
                                     </div>
                                 </div>
@@ -82,33 +84,33 @@
     <script>
         let userEmail = '';
 
-
-        async function login() {
+        async function register() {
+            const username = document.getElementById('username').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             userEmail = email;
 
             try {
-                const response = await fetch('/api/Authentication/login', {
+                const response = await fetch('/api/Authentication/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ username, email, password })
                 });
 
                 const data = await response.json();
                 
                 if (response.ok) {
-                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('pinForm').style.display = 'block';
                     alert('Please check your email for the PIN code');
                 } else {
-                    alert(data.message || 'Login failed');
+                    alert(data.message || 'Registration failed');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred during login');
+                alert('An error occurred during registration');
             }
         }
 
@@ -116,7 +118,7 @@
             const pin = document.getElementById('pin').value;
 
             try {
-                const response = await fetch('/api/Authentication/verify-pin', {
+                const response = await fetch('/api/Authentication/verify-registration-pin', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -127,8 +129,8 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    localStorage.setItem('token', data.token);
-                    window.location.href = '/Home/Cours';
+                    alert('Registration successful! Please login.');
+                    window.location.href = '/Home/Login';
                 } else {
                     alert(data.message || 'PIN verification failed');
                 }
