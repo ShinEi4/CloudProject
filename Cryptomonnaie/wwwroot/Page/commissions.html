@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Gestion des Commissions</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-dark mb-0">Gestion des Commissions</h3>
+        </div>
+
+        <div class="row">
+            <!-- Commissions actuelles -->
+            <div class="col-xl-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="text-primary fw-bold m-0">Commissions actuelles</h6>
+                        <button class="btn btn-primary btn-sm" onclick="showNewCommissionModal()">
+                            <i class="fas fa-plus"></i> Nouvelle commission
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Pourcentage</th>
+                                        <th>Dernière modification</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="commissionsTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historique des commissions -->
+            <div class="col-xl-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="text-primary fw-bold m-0">Historique des commissions</h6>
+                        <select class="form-select form-select-sm" style="width: auto;" id="typeFilter" onchange="loadHistorique()">
+                            <option value="">Tous les types</option>
+                            <option value="ACHAT">Achat</option>
+                            <option value="VENTE">Vente</option>
+                        </select>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Pourcentage</th>
+                                        <th>Date de modification</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historiqueTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de modification -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier la commission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editType">
+                        <div class="mb-3">
+                            <label class="form-label">Pourcentage</label>
+                            <input type="number" class="form-control" id="editPourcentage" 
+                                   step="0.01" min="0" max="100" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="addCommission()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ajoutons un nouveau modal pour la création -->
+    <div class="modal fade" id="newCommissionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nouvelle commission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newCommissionForm">
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="newType" required>
+                                <option value="ACHAT">Achat</option>
+                                <option value="VENTE">Vente</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pourcentage</label>
+                            <input type="number" class="form-control" id="newPourcentage" 
+                                   step="0.01" min="0" max="100" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewCommission()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        let editModal;
+        let newCommissionModal;
+
+        async function loadCommissions() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/Home/Login';
+                    return;
+                }
+
+                const response = await fetch('/api/Commission', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch commissions');
+                }
+
+                const commissions = await response.json();
+                const tbody = document.getElementById('commissionsTableBody');
+                tbody.innerHTML = '';
+
+                commissions.forEach(commission => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${commission.type === 'ACHAT' ? 'Achat' : 'Vente'}</td>
+                        <td>${commission.pourcentage.toFixed(2)}%</td>
+                        <td>${new Date(commission.dateModification).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" 
+                                    onclick="showEditModal('${commission.type}', ${commission.pourcentage})">
+                                Modifier
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des commissions');
+            }
+        }
+
+        async function loadHistorique() {
+            try {
+                const token = localStorage.getItem('token');
+                const type = document.getElementById('typeFilter').value;
+                
+                let url = '/api/Commission/historique';
+                if (type) {
+                    url += `?type=${type}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch historique');
+                }
+
+                const historique = await response.json();
+                const tbody = document.getElementById('historiqueTableBody');
+                tbody.innerHTML = '';
+
+                historique.forEach(commission => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${commission.type === 'ACHAT' ? 'Achat' : 'Vente'}</td>
+                        <td>${commission.pourcentage.toFixed(2)}%</td>
+                        <td>${new Date(commission.dateModification).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement de l\'historique');
+            }
+        }
+
+        function showEditModal(type, pourcentage) {
+            document.getElementById('editType').value = type;
+            document.getElementById('editPourcentage').value = pourcentage;
+            editModal.show();
+        }
+
+        async function addCommission() {
+            try {
+                const type = document.getElementById('editType').value;
+                const pourcentage = parseFloat(document.getElementById('editPourcentage').value);
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/Commission', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ type, pourcentage })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'ajout');
+                }
+
+                editModal.hide();
+                await loadCommissions();
+                await loadHistorique();
+                alert('Commission ajoutée avec succès');
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+
+        function showNewCommissionModal() {
+            document.getElementById('newType').value = 'ACHAT';
+            document.getElementById('newPourcentage').value = '';
+            newCommissionModal.show();
+        }
+
+        async function addNewCommission() {
+            try {
+                const type = document.getElementById('newType').value;
+                const pourcentage = parseFloat(document.getElementById('newPourcentage').value);
+
+                if (isNaN(pourcentage) || pourcentage < 0 || pourcentage > 100) {
+                    throw new Error('Le pourcentage doit être entre 0 et 100');
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/Commission', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ type, pourcentage })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'ajout');
+                }
+
+                newCommissionModal.hide();
+                await loadCommissions();
+                await loadHistorique();
+                alert('Commission ajoutée avec succès');
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            newCommissionModal = new bootstrap.Modal(document.getElementById('newCommissionModal'));
+            loadCommissions();
+            loadHistorique();
+        });
+    </script>
+</body>
+
+</html> 

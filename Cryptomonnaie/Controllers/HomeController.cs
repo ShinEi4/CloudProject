@@ -58,6 +58,11 @@ public class HomeController : Controller
         return File("~/Page/transactions.html", "text/html");
     }
 
+    public IActionResult Commissions()
+    {
+        return File("~/Page/commissions.html", "text/html");
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
