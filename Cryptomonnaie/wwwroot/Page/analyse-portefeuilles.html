@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Analyse des Portefeuilles</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-dark mb-0">Analyse des Portefeuilles</h3>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Paramètres d'analyse</h6>
+            </div>
+            <div class="card-body">
+                <form id="analyseForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Date limite d'analyse</label>
+                        <input type="datetime-local" class="form-control" id="dateFin" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Analyser</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Résultats de l'analyse</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Utilisateur</th>
+                                <th>Solde (€)</th>
+                                <th>Valeur Cryptos (€)</th>
+                                <th>Total Achats (€)</th>
+                                <th>Total Ventes (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour les détails -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Détails du portefeuille</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Crypto</th>
+                                <th>Montant</th>
+                                <th>Valeur (€)</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        let detailsModal;
+
+        async function analyserPortefeuilles(event) {
+            event.preventDefault();
+            try {
+                const token = localStorage.getItem('token');
+                const dateFin = document.getElementById('dateFin').value;
+
+                const response = await fetch(`/api/PortfolioAnalyse/analyse?dateFin=${dateFin}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'analyse');
+                }
+
+                const resultats = await response.json();
+                const tbody = document.getElementById('resultsTableBody');
+                tbody.innerHTML = '';
+
+                resultats.forEach(portfolio => {
+                    const valeurCryptos = portfolio.cryptoHoldings.reduce((sum, holding) => 
+                        sum + holding.valeurActuelle, 0);
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${portfolio.username}</td>
+                        <td>${portfolio.soldeEuros.toFixed(2)} €</td>
+                        <td>${valeurCryptos.toFixed(2)} €</td>
+                        <td>${portfolio.totalAchats.toFixed(2)} €</td>
+                        <td>${portfolio.totalVentes.toFixed(2)} €</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors de l\'analyse: ' + error.message);
+            }
+        }
+
+        function showDetails(holdings) {
+            const tbody = document.getElementById('detailsTableBody');
+            tbody.innerHTML = '';
+
+            holdings.forEach(holding => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${holding.nomCrypto}</td>
+                    <td>${holding.montant}</td>
+                    <td>${holding.valeurActuelle.toFixed(2)} €</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            detailsModal.show();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            document.getElementById('analyseForm').addEventListener('submit', analyserPortefeuilles);
+
+            // Date par défaut
+            document.getElementById('dateFin').value = new Date().toISOString().slice(0, 16);
+        });
+    </script>
+</body>
+
+</html> 

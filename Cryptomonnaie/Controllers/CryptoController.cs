@@ -84,5 +84,40 @@ namespace Cryptomonnaie.Controllers
                 return StatusCode(500, "Erreur interne du serveur");
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCryptos()
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(_connectionString);
+                await connection.OpenAsync();
+                
+                var query = @"
+                    SELECT id_crypto, nom_crypto 
+                    FROM Crypto 
+                    ORDER BY nom_crypto";
+
+                using var cmd = new NpgsqlCommand(query, connection);
+                var cryptos = new List<object>();
+                
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    cryptos.Add(new
+                    {
+                        id = reader.GetInt32(0),
+                        nom = reader.GetString(1)
+                    });
+                }
+
+                return Ok(cryptos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la récupération des cryptomonnaies");
+                return StatusCode(500, "Erreur interne du serveur");
+            }
+        }
     }
 } 

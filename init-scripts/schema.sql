@@ -124,6 +124,13 @@ CREATE TABLE fond_transaction(
    FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille)
 );
 
+CREATE TABLE Commission (
+    id_commission SERIAL PRIMARY KEY,
+    type VARCHAR(10) NOT NULL CHECK (type IN ('ACHAT', 'VENTE')),
+    pourcentage DECIMAL(5,2) NOT NULL CHECK (pourcentage >= 0 AND pourcentage <= 100),
+    date_modification TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO LimiteConnexion (limite) VALUES (3);
 INSERT INTO DureeSession (duree) VALUES ('01:00:00');
 
