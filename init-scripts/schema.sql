@@ -80,6 +80,17 @@ CREATE TABLE portefeuille(
    FOREIGN KEY(id_utilisateur) REFERENCES Utilisateur(id_utilisateur)
 );
 
+CREATE TABLE portefeuille_crypto (
+   id_portefeuille_crypto SERIAL,
+   id_portefeuille INTEGER NOT NULL,
+   id_crypto INTEGER NOT NULL,
+   montant NUMERIC(15,2) DEFAULT 0,
+   PRIMARY KEY(id_portefeuille_crypto),
+   FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille),
+   FOREIGN KEY(id_crypto) REFERENCES Crypto(id_crypto),
+   UNIQUE(id_portefeuille, id_crypto)
+);
+
 CREATE TABLE Transaction(
    id_transaction SERIAL,
    type VARCHAR(50) ,
@@ -88,11 +99,9 @@ CREATE TABLE Transaction(
    prix_unitaire NUMERIC(15,2)  ,
    date_transaction TIMESTAMP,
    is_validate BOOLEAN,
-   id_portefeuille INTEGER NOT NULL,
-   id_crypto INTEGER NOT NULL,
+   id_portefeuille_crypto INTEGER NOT NULL,
    PRIMARY KEY(id_transaction),
-   FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille),
-   FOREIGN KEY(id_crypto) REFERENCES Crypto(id_crypto)
+   FOREIGN KEY(id_portefeuille_crypto) REFERENCES portefeuille_crypto(id_portefeuille_crypto)
 );
 
 CREATE TABLE prix_crypto(
@@ -118,19 +127,7 @@ CREATE TABLE fond_transaction(
 INSERT INTO LimiteConnexion (limite) VALUES (3);
 INSERT INTO DureeSession (duree) VALUES ('01:00:00');
 
-CREATE VIEW portefeuille_crypto_utilisateur AS
-SELECT 
-   c.nom_crypto,
-   p.id_utilisateur,
-   COALESCE(SUM(t.quantiteEntree - t.quantiteSortie), 0) AS solde
-FROM 
-   portefeuille p
-JOIN 
-   Transaction t ON p.id_portefeuille = t.id_portefeuille
-JOIN 
-   Crypto c ON t.id_crypto = c.id_crypto
-GROUP BY 
-   c.nom_crypto, p.id_utilisateur;
+
 
 -- Insertion d'un utilisateur initial
 INSERT INTO Utilisateur (username, email, mdp, is_valid) 
