@@ -28,8 +28,8 @@
                     <li class="nav-item"><a class="nav-link" href="/Home"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
                     <li class="nav-item"><a class="nav-link active" href="/Home/Profile"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="/Home/Cours"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Table</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Login"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Register"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Login"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Register"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -126,26 +126,40 @@
                                             <p class="m-0 fw-bold" style="font-family: Orbitron, sans-serif;color: #2a2d36;">ACTION</p>
                                         </div>
                                         <div class="card-body">
-                                            <form>
+                                            <form id="depositForm" onsubmit="handleDeposit(event)">
                                                 <div class="row">
                                                     <div class="col">
                                                         <div class="mb-3">
-                                                            <form><label class="form-label" for="city" style="font-family: 'Exo 2', sans-serif;"><strong>Deposit cash</strong></label><input class="form-control" type="number" id="city" placeholder="Enter amount" name="depositAmount" style="margin-bottom: 12px;">
-                                                                <div class="mb-3"><button class="btn btn-dark" type="submit" style="font-family: 'Exo 2', sans-serif;">Validate</button></div>
-                                                            </form>
+                                                            <label class="form-label" for="depositAmount" style="font-family: 'Exo 2', sans-serif;">
+                                                                <strong>Deposit cash</strong>
+                                                            </label>
+                                                            <input class="form-control" type="number" id="depositAmount" 
+                                                                   placeholder="Enter amount" name="depositAmount" 
+                                                                   style="margin-bottom: 12px;" required min="0" step="0.01">
+                                                            <div class="mb-3">
+                                                                <button class="btn btn-dark" type="submit" 
+                                                                        style="font-family: 'Exo 2', sans-serif;">Validate</button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </form>
                                         </div>
                                         <div class="card-body">
-                                            <form>
+                                            <form id="withdrawForm" onsubmit="handleWithdraw(event)">
                                                 <div class="row">
                                                     <div class="col">
                                                         <div class="mb-3">
-                                                            <form><label class="form-label" for="city" style="font-family: 'Exo 2', sans-serif;"><strong>Withdraw cash</strong></label><input class="form-control" type="number" id="city-1" placeholder="Enter amount" name="withdrawAmount" style="margin-bottom: 12px;">
-                                                                <div class="mb-3"><button class="btn btn-dark" type="submit" style="font-family: 'Exo 2', sans-serif;">Validate</button></div>
-                                                            </form>
+                                                            <label class="form-label" for="withdrawAmount" style="font-family: 'Exo 2', sans-serif;">
+                                                                <strong>Withdraw cash</strong>
+                                                            </label>
+                                                            <input class="form-control" type="number" id="withdrawAmount" 
+                                                                   placeholder="Enter amount" name="withdrawAmount" 
+                                                                   style="margin-bottom: 12px;" required min="0" step="0.01">
+                                                            <div class="mb-3">
+                                                                <button class="btn btn-dark" type="submit" 
+                                                                        style="font-family: 'Exo 2', sans-serif;">Validate</button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -165,6 +179,8 @@
     <script src="../assets/js/bs-init.js"></script>
     <script src="../assets/js/theme.js"></script>
     <script>
+        let currentWalletId = null;
+
         document.addEventListener('DOMContentLoaded', async function() {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -196,6 +212,7 @@
 
                 if (walletResponse.ok) {
                     const walletData = await walletResponse.json();
+                    currentWalletId = walletData.id_portefeuille;
                     document.getElementById('walletBalance').textContent = `${walletData.solde} €`;
                 } else {
                     document.getElementById('walletBalance').textContent = '0 €';
@@ -207,6 +224,48 @@
                 alert('Failed to load user information');
             }
         });
+
+        async function handleDeposit(event) {
+            event.preventDefault();
+            const amount = document.getElementById('depositAmount').value;
+            await handleTransaction('deposit', amount);
+        }
+
+        async function handleWithdraw(event) {
+            event.preventDefault();
+            const amount = document.getElementById('withdrawAmount').value;
+            await handleTransaction('withdraw', amount);
+        }
+
+        async function handleTransaction(type, amount) {
+            if (!currentWalletId) {
+                alert('Wallet not found');
+                return;
+            }
+
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/Portefeuille/${currentWalletId}/${type}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                });
+
+                if (response.ok) {
+                    alert(`${type.charAt(0).toUpperCase() + type.slice(1)} request submitted successfully`);
+                    // Refresh wallet balance
+                    location.reload();
+                } else {
+                    alert(`Failed to process ${type}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error processing ${type}`);
+            }
+        }
     </script>
 </body>
 
