@@ -109,7 +109,7 @@ CREATE TABLE fond_transaction(
    type VARCHAR(50) ,
    montant NUMERIC(15,2)  ,
    date_transaction TIMESTAMP,
-   is_validate SERIAL,
+   is_validate BOOLEAN,
    id_portefeuille INTEGER NOT NULL,
    PRIMARY KEY(id_fond),
    FOREIGN KEY(id_portefeuille) REFERENCES portefeuille(id_portefeuille)
