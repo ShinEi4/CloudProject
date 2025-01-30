@@ -38,6 +38,11 @@ public class HomeController : Controller
         return File("~/Page/crypto-cours.html", "text/html");
     }
 
+    public IActionResult Profile()
+    {
+        return File("~/Page/profile.html", "text/html");
+    }
+
     public IActionResult Login()
     {
         return File("~/Page/login.html", "text/html");
