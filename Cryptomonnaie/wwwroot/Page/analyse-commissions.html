@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Analyse des Commissions</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-dark mb-0">Analyse des Commissions</h3>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Paramètres d'analyse</h6>
+            </div>
+            <div class="card-body">
+                <form id="analyseForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Type d'analyse</label>
+                        <select class="form-select" id="typeAnalyse" required>
+                            <option value="Somme">Somme des commissions</option>
+                            <option value="Moyenne">Moyenne des commissions</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Crypto-monnaie</label>
+                        <select class="form-select" id="cryptoSelect">
+                            <option value="0">Toutes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date début</label>
+                        <input type="datetime-local" class="form-control" id="dateDebut" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date fin</label>
+                        <input type="datetime-local" class="form-control" id="dateFin" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Analyser</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Résultats de l'analyse</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Crypto</th>
+                                <th>Résultat</th>
+                                <th>Nombre de transactions</th>
+                                <th>Commission min</th>
+                                <th>Commission max</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadCryptos() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/crypto', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch cryptos');
+                }
+
+                const cryptos = await response.json();
+                const select = document.getElementById('cryptoSelect');
+
+                cryptos.forEach(crypto => {
+                    const option = document.createElement('option');
+                    option.value = crypto.id;
+                    option.textContent = crypto.nom;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des crypto-monnaies');
+            }
+        }
+
+        async function analyserCommissions(event) {
+            event.preventDefault();
+            try {
+                const token = localStorage.getItem('token');
+                const typeAnalyse = document.getElementById('typeAnalyse').value;
+                const cryptoId = document.getElementById('cryptoSelect').value;
+                console.log("cryptoId", cryptoId);
+                const dateDebut = document.getElementById('dateDebut').value;
+                const dateFin = document.getElementById('dateFin').value;
+
+                // Construire l'URL avec les paramètres
+                let url = new URL('/api/CommissionAnalyse/analyse', window.location.origin);
+                url.searchParams.append('typeAnalyse', typeAnalyse);
+                url.searchParams.append('cryptoId', cryptoId);
+                url.searchParams.append('dateDebut', dateDebut);
+                url.searchParams.append('dateFin', dateFin);
+
+                console.log('URL de la requête:', url.toString()); // Pour le débogage
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'analyse');
+                }
+
+                const resultats = await response.json();
+                console.log('Résultats reçus:', resultats); // Pour le débogage
+
+                const tbody = document.getElementById('resultsTableBody');
+                tbody.innerHTML = '';
+
+                if (resultats.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                Aucune transaction trouvée pour cette période
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                resultats.forEach(resultat => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${resultat.crypto}</td>
+                        <td>${resultat.resultat.toFixed(2)} €</td>
+                        <td>${resultat.nombreTransactions}</td>
+                        <td>${resultat.commissionMin.toFixed(2)}%</td>
+                        <td>${resultat.commissionMax.toFixed(2)}%</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors de l\'analyse des commissions: ' + error.message);
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCryptos();
+            document.getElementById('analyseForm').addEventListener('submit', analyserCommissions);
+
+            // Initialiser les dates par défaut (dernier mois)
+            const now = new Date();
+            const lastMonth = new Date(now);
+            lastMonth.setMonth(now.getMonth() - 1);
+
+            document.getElementById('dateDebut').value = lastMonth.toISOString().slice(0, 16);
+            document.getElementById('dateFin').value = now.toISOString().slice(0, 16);
+        });
+    </script>
+</body>
+
+</html> 

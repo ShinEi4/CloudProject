@@ -63,6 +63,11 @@ public class HomeController : Controller
         return File("~/Page/commissions.html", "text/html");
     }
 
+    public IActionResult AnalyseCommissions()
+    {
+        return File("~/Page/analyse-commissions.html", "text/html");
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
