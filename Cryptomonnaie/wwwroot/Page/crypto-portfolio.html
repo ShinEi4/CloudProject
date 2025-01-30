@@ -151,6 +151,7 @@
                 const data = await response.json();
                 
                 const select = document.getElementById('cryptoSelect');
+                const selectedValue = select.value; // Sauvegarder la valeur sélectionnée
                 select.innerHTML = '';
                 
                 data.forEach(crypto => {
@@ -160,6 +161,11 @@
                     option.dataset.nom = crypto.crypto;
                     select.appendChild(option);
                 });
+
+                // Restaurer la sélection si elle existe toujours
+                if (selectedValue && Array.from(select.options).some(opt => opt.value === selectedValue)) {
+                    select.value = selectedValue;
+                }
             } catch (error) {
                 console.error('Erreur:', error);
             }
@@ -241,10 +247,13 @@
             }
         });
 
-        // Initialisation
+        // Initialisation et mise à jour périodique
         document.addEventListener('DOMContentLoaded', loadUserInfo);
         setInterval(() => {
-            if (userId) loadPortfolio();
+            if (userId) {
+                loadPortfolio();
+                loadCryptoList(); // Ajout de la mise à jour des prix dans le select
+            }
         }, 10000);
     </script>
 </body>
