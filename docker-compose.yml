@@ -23,7 +23,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=identity_db;User Id=postgres;Password=postgres_password;
     volumes:
       - ./Cryptomonnaie/wwwroot:/app/wwwroot

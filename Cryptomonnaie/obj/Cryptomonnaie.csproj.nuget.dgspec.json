@@ -46,9 +46,13 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Microsoft.Extensions.Logging": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Npgsql": {
               "target": "Package",
-              "version": "[9.0.2, )"
+              "version": "[8.0.1, )"
             }
           },
           "imports": [
