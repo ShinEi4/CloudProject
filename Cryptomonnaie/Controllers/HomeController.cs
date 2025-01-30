@@ -18,6 +18,11 @@ public class HomeController : Controller
         return File("~/Page/index.html", "text/html");
     }
 
+    public IActionResult Evolution()
+    {
+        return File("~/Page/crypto-evolution.html", "text/html");
+    }
+
     public IActionResult Privacy()
     {
         return View();
