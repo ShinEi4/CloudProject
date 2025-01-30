@@ -29,6 +29,7 @@ namespace Cryptomonnaie.Controllers
                 var query = @"
                     WITH LatestPrices AS (
                         SELECT DISTINCT ON (pc.id_crypto)
+                            c.id_crypto,
                             c.nom_crypto,
                             pc.prix,
                             pc.date_prix,
@@ -38,6 +39,7 @@ namespace Cryptomonnaie.Controllers
                         ORDER BY pc.id_crypto, pc.date_prix DESC
                     )
                     SELECT 
+                        id_crypto,
                         nom_crypto,
                         prix,
                         date_prix,
@@ -53,16 +55,17 @@ namespace Cryptomonnaie.Controllers
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var variation = reader.GetDouble(3);
-                    var prix = reader.GetDecimal(1);
+                    var variation = reader.GetDouble(4);
+                    var prix = reader.GetDecimal(2);
                     
                     result.Add(new
                     {
-                        crypto = reader.GetString(0),
+                        id = reader.GetInt32(0),
+                        crypto = reader.GetString(1),
                         prix = prix,
-                        date = reader.GetDateTime(2),
+                        date = reader.GetDateTime(3),
                         variation = variation,
-                        percentage = Math.Min(100, Math.Max(0, (double)prix / 200 * 100)), // Pour la barre de progression
+                        percentage = Math.Min(100, Math.Max(0, (double)prix / 200 * 100)),
                         cssClass = variation switch
                         {
                             var x when x > 5 => "bg-success",

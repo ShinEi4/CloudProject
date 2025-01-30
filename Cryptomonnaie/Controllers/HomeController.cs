@@ -48,6 +48,11 @@ public class HomeController : Controller
         return File("~/Page/login.html", "text/html");
     }
 
+    public IActionResult Portfolio()
+    {
+        return File("~/Page/crypto-portfolio.html", "text/html");
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
