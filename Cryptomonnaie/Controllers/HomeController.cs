@@ -68,6 +68,11 @@ public class HomeController : Controller
         return File("~/Page/analyse-commissions.html", "text/html");
     }
 
+    public IActionResult AnalysePortefeuilles()
+    {
+        return File("~/Page/analyse-portefeuilles.html", "text/html");
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
