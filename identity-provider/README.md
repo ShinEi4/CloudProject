@@ -91,6 +91,17 @@ Arrêter les conteneurs :
     docker-compose down
 Rebuild des images Docker :
     docker-compose build
+Efface toutes les tables de la base de données :
+    DO $$ 
+    DECLARE 
+        r RECORD;
+    BEGIN
+        FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+        LOOP
+            EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+        END LOOP;
+    END $$;
+
 
 
 ❗NB: Les collections postman sont presents dans collection.json
@@ -110,3 +121,4 @@ Connexion échouée à PostgreSQL :
     Vérifiez les logs et assurez-vous que les variables DB_USER, DB_PASS et DB_NAME dans .env sont correctes.
 Port en conflit :
     Si le port 3000 ou 5432 est déjà utilisé, modifiez-le dans .env ou dans docker-compose.yml.
+
