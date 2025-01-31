@@ -94,7 +94,7 @@
                                 <div class="nav-item dropdown no-arrow">
                                     <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
                                         <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
-                                            <span style="color: rgb(247, 246, 244);" id="userDisplayName">Chargement...</span>&nbsp;
+                                            <span style="color: rgb(247, 246, 244);" id="userDisplayName">...</span>&nbsp;
                                         </span>
                                     </a>
                                     <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
@@ -184,7 +184,6 @@
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="../assets/js/bs-init.js"></script>
     <script src="../assets/js/theme.js"></script>
-    <script src="../assets/js/auth.js"></script>
     <script>
         let detailsModal;
 
@@ -246,7 +245,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadUserInfo();
             detailsModal = new bootstrap.Modal(document.getElementById('detailsModal'));
             document.getElementById('analyseForm').addEventListener('submit', analyserPortefeuilles);
 
