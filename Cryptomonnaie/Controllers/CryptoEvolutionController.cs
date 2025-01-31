@@ -25,11 +25,26 @@ namespace Cryptomonnaie.Controllers
                 await connection.OpenAsync();
 
                 var query = @"
-                    SELECT c.nom_crypto, pc.prix, pc.date_prix
-                    FROM prix_crypto pc
-                    JOIN crypto c ON c.id_crypto = pc.id_crypto
-                    WHERE pc.date_prix >= NOW() - INTERVAL '3 days'
-                    ORDER BY c.nom_crypto, pc.date_prix";
+                    WITH time_buckets AS (
+                        SELECT 
+                            c.nom_crypto,
+                            date_trunc('hour', pc.date_prix) + 
+                                INTERVAL '5 min' * (extract(minute from pc.date_prix)::integer / 5) as bucket_time,
+                            AVG(pc.prix) as avg_price
+                        FROM prix_crypto pc
+                        JOIN crypto c ON c.id_crypto = pc.id_crypto
+                        WHERE pc.date_prix >= NOW() - INTERVAL '1 day'
+                        GROUP BY 
+                            c.nom_crypto,
+                            date_trunc('hour', pc.date_prix) + 
+                                INTERVAL '5 min' * (extract(minute from pc.date_prix)::integer / 5)
+                    )
+                    SELECT 
+                        nom_crypto,
+                        avg_price as prix,
+                        bucket_time as date_prix
+                    FROM time_buckets
+                    ORDER BY nom_crypto, bucket_time ASC";
 
                 using var command = new NpgsqlCommand(query, connection);
                 using var reader = await command.ExecuteReaderAsync();
@@ -40,7 +55,7 @@ namespace Cryptomonnaie.Controllers
                 {
                     var crypto = reader.GetString(0);
                     var price = reader.GetDecimal(1);
-                    var date = reader.GetDateTime(2);
+                    var date = reader.GetDateTime(2).ToUniversalTime();
 
                     if (!evolution.ContainsKey(crypto))
                     {
@@ -50,7 +65,7 @@ namespace Cryptomonnaie.Controllers
                     evolution[crypto].Add(new
                     {
                         price = price,
-                        date = date
+                        date = date.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'")
                     });
                 }
 

@@ -65,7 +65,7 @@
                         <div class="col-lg-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="text-dark fw-bold m-0">Evolution des prix (3 jours)</h6>
+                                    <h6 class="text-dark fw-bold m-0">Evolution des prix</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="chart-area">
@@ -90,32 +90,45 @@
             try {
                 const response = await fetch('/api/CryptoEvolution/evolution');
                 const data = await response.json();
-
+                console.log(data);
+                
                 const colors = [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 206, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(153, 102, 255)',
-                    'rgb(255, 159, 64)'
+                    'rgb(255, 99, 132)',   // red
+                    'rgb(54, 162, 235)',   // blue
+                    'rgb(255, 206, 86)',   // yellow
+                    'rgb(75, 192, 192)',   // green
+                    'rgb(153, 102, 255)',  // purple
+                    'rgb(255, 159, 64)'    // orange
                 ];
 
                 const datasets = Object.entries(data).map(([crypto, values], index) => ({
                     label: crypto,
-                    data: values.map(v => ({ x: new Date(v.date), y: v.price })),
+                    data: values.map(v => ({
+                        x: v.date,
+                        y: parseFloat(v.price)
+                    })),
                     borderColor: colors[index % colors.length],
-                    fill: false,
-                    tension: 0.1
+                    backgroundColor: colors[index % colors.length].replace('rgb', 'rgba').replace(')', ', 0.2)'),
+                    fill: false
                 }));
+
+                // Get all unique dates for labels
+                const allDates = new Set();
+                Object.values(data).forEach(values => {
+                    values.forEach(v => allDates.add(v.date));
+                });
+                const labels = Array.from(allDates).sort();
 
                 if (cryptoChart) {
                     cryptoChart.destroy();
                 }
 
-                cryptoChart = new Chart(document.getElementById('cryptoChart'), {
+                const ctx = document.getElementById('cryptoChart').getContext('2d');
+                const config = {
                     type: 'line',
-                    data: {
-                        datasets: datasets
+                    data: { 
+                        labels: labels,
+                        datasets: datasets 
                     },
                     options: {
                         responsive: true,
@@ -123,41 +136,55 @@
                             x: {
                                 type: 'time',
                                 time: {
-                                    unit: 'day',
+                                    unit: 'hour',
                                     displayFormats: {
-                                        day: 'DD/MM'
+                                        hour: 'DD/MM HH:mm'
                                     }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Datetime'
                                 }
                             },
                             y: {
-                                beginAtZero: false,
-                                suggestedMax: 400,
+                                title: {
+                                    display: true,
+                                    text: 'Value (€)'
+                                },
                                 ticks: {
-                                    stepSize: 50
+                                    callback: function(value) {
+                                        return value.toFixed(2) + '€';
+                                    }
                                 }
                             }
                         },
                         plugins: {
                             legend: {
-                                position: 'top',
-                                labels: {
-                                    usePointStyle: true,
-                                    padding: 20
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}€`;
+                                    }
                                 }
                             }
                         }
                     }
-                });
+                };
+
+                cryptoChart = new Chart(ctx, config);
             } catch (error) {
                 console.error('Error:', error);
             }
         }
 
-        // Update every 10 seconds
-        setInterval(updateChart, 10000);
-
         // Initial update
         document.addEventListener('DOMContentLoaded', updateChart);
+        
+        // Update every minute
+        // setInterval(updateChart, 60000);
 
         function logout() {
             localStorage.removeItem('token');

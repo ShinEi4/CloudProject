@@ -36,7 +36,27 @@ namespace Cryptomonnaie.Services
                 {
                     await connection.OpenAsync();
 
-                    // Récupérer les derniers prix pour chaque crypto
+                    // Get initial prices for each crypto
+                    var initialPricesQuery = @"
+                        SELECT id_crypto, prix as initial_price
+                        FROM prix_crypto
+                        WHERE (id_crypto, date_prix) IN (
+                            SELECT id_crypto, MIN(date_prix)
+                            FROM prix_crypto
+                            GROUP BY id_crypto
+                        )";
+
+                    var initialPrices = new Dictionary<int, decimal>();
+                    using (var initCmd = new NpgsqlCommand(initialPricesQuery, connection))
+                    using (var initReader = await initCmd.ExecuteReaderAsync())
+                    {
+                        while (await initReader.ReadAsync())
+                        {
+                            initialPrices[initReader.GetInt32(0)] = initReader.GetDecimal(1);
+                        }
+                    }
+
+                    // Get latest prices
                     var query = @"
                         SELECT c.id_crypto, c.nom_crypto, 
                                COALESCE((SELECT prix FROM prix_crypto 
@@ -57,14 +77,19 @@ namespace Cryptomonnaie.Services
                         ));
                     }
 
-                    // Fermer le premier reader
                     await reader.CloseAsync();
 
-                    // Générer et insérer les nouveaux prix
                     foreach (var crypto in cryptos)
                     {
-                        decimal variation = (decimal)(_random.NextDouble() * 0.1 - 0.05); // Variation de ±5%
-                        decimal newPrice = Math.Max(0.01M, crypto.dernierPrix * (1 + variation));
+                        decimal initialPrice = initialPrices[crypto.id];
+                        decimal maxVariation = initialPrice * 0.15m;
+                        
+                        decimal variation = (decimal)(_random.NextDouble() * 0.1 - 0.05);
+                        decimal newPrice = crypto.dernierPrix * (1 + variation);
+                        
+                        decimal minPrice = initialPrice * 0.85m;
+                        decimal maxPrice = initialPrice * 1.15m;
+                        newPrice = Math.Max(minPrice, Math.Min(maxPrice, newPrice));
 
                         var insertCmd = new NpgsqlCommand(@"
                             INSERT INTO prix_crypto (prix, date_prix, id_crypto)
