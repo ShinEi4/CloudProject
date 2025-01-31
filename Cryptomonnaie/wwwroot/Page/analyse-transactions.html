@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Analyse des Transactions</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="d-sm-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-dark mb-0">Analyse des Transactions</h3>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Paramètres d'analyse</h6>
+            </div>
+            <div class="card-body">
+                <form id="analyseForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Type d'analyse</label>
+                        <select class="form-select" id="typeAnalyse" required>
+                            <option value="1erQuartile">1er quartile</option>
+                            <option value="Max">Maximum</option>
+                            <option value="Min">Minimum</option>
+                            <option value="Moyenne">Moyenne</option>
+                            <option value="EcartType">Écart-type</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Crypto-monnaies</label>
+                        <div id="cryptoCheckboxes" class="form-control" style="height: auto; max-height: 200px; overflow-y: auto;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="0" id="checkAll">
+                                <label class="form-check-label" for="checkAll">Toutes</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date début</label>
+                        <input type="datetime-local" class="form-control" id="dateDebut" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date fin</label>
+                        <input type="datetime-local" class="form-control" id="dateFin" required>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Analyser</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="text-primary fw-bold m-0">Résultats de l'analyse</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Crypto</th>
+                                <th>Résultat</th>
+                                <th>Nombre de transactions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadCryptos() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/crypto', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch cryptos');
+                }
+
+                const cryptos = await response.json();
+                const container = document.getElementById('cryptoCheckboxes');
+
+                cryptos.forEach(crypto => {
+                    const div = document.createElement('div');
+                    div.className = 'form-check';
+                    div.innerHTML = `
+                        <input class="form-check-input crypto-checkbox" type="checkbox" value="${crypto.id}" id="crypto${crypto.id}">
+                        <label class="form-check-label" for="crypto${crypto.id}">${crypto.nom}</label>
+                    `;
+                    container.appendChild(div);
+                });
+
+                // Gérer le "Toutes" checkbox
+                document.getElementById('checkAll').addEventListener('change', function() {
+                    const cryptoCheckboxes = document.querySelectorAll('.crypto-checkbox');
+                    cryptoCheckboxes.forEach(cb => cb.checked = this.checked);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des crypto-monnaies');
+            }
+        }
+
+        async function analyserTransactions(event) {
+            event.preventDefault();
+            try {
+                const token = localStorage.getItem('token');
+                const typeAnalyse = document.getElementById('typeAnalyse').value;
+                const dateDebut = document.getElementById('dateDebut').value;
+                const dateFin = document.getElementById('dateFin').value;
+
+                // Récupérer les cryptos sélectionnées
+                const checkAll = document.getElementById('checkAll').checked;
+                const cryptoIds = checkAll ? "0" : Array.from(document.querySelectorAll('.crypto-checkbox:checked'))
+                    .map(cb => cb.value)
+                    .join(',');
+
+                if (!checkAll && !cryptoIds) {
+                    alert('Veuillez sélectionner au moins une crypto-monnaie');
+                    return;
+                }
+
+                const url = new URL('/api/TransactionAnalyse/analyse', window.location.origin);
+                url.searchParams.append('typeAnalyse', typeAnalyse);
+                url.searchParams.append('cryptoIds', cryptoIds);
+                url.searchParams.append('dateDebut', dateDebut);
+                url.searchParams.append('dateFin', dateFin);
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erreur lors de l\'analyse');
+                }
+
+                const resultats = await response.json();
+                const tbody = document.getElementById('resultsTableBody');
+                tbody.innerHTML = '';
+
+                if (resultats.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="text-center">
+                                Aucune transaction trouvée pour cette période
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                resultats.forEach(resultat => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${resultat.crypto}</td>
+                        <td>${resultat.resultat.toFixed(2)} €</td>
+                        <td>${resultat.nombreTransactions}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors de l\'analyse: ' + error.message);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCryptos();
+            document.getElementById('analyseForm').addEventListener('submit', analyserTransactions);
+
+            // Initialiser les dates par défaut (dernier mois)
+            const now = new Date();
+            const lastMonth = new Date(now);
+            lastMonth.setMonth(now.getMonth() - 1);
+
+            document.getElementById('dateDebut').value = lastMonth.toISOString().slice(0, 16);
+            document.getElementById('dateFin').value = now.toISOString().slice(0, 16);
+        });
+    </script>
+</body>
+
+</html> 
