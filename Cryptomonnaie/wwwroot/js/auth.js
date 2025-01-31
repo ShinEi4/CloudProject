@@ -1,7 +1,4 @@
-let userId = null;
-let userName = null;
-
-// Fonction pour charger les informations de l'utilisateur
+// Gestion de l'authentification
 async function loadUserInfo() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -21,14 +18,10 @@ async function loadUserInfo() {
         }
 
         const userData = await response.json();
-        userId = userData.id;
-        userName = userData.username; // Supposons que l'API renvoie un champ username
-        document.getElementById('userDisplayName').textContent = userName;
-        loadPortfolio();
-        loadCryptoList();
+        document.getElementById('userDisplayName').textContent = userData.username;
+        return userData;
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to load user information');
         window.location.href = '/Home/Login';
     }
-}
+} 
