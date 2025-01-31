@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Crypto Evolution - Brand</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Anton.css">
+    <link rel="stylesheet" href="../assets/css/Exo%202.css">
+    <link rel="stylesheet" href="../assets/css/Nunito.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome5-overrides.min.css">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark" style="background: #bfb699;">
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
+                    <div class="sidebar-brand-text mx-3"><span style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link active" href="/Home/Evolution"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Profile"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Cours"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Cours</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Login"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/Home/Register"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
+                </ul>
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <nav class="navbar navbar-expand shadow mb-4 topbar static-top navbar-light" style="border-color: #596069;background: #596069;">
+                    <div class="container-fluid"><button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                        <ul class="navbar-nav flex-nowrap ms-auto" style="background: #596069;">
+                            <div class="d-none d-sm-block topbar-divider"></div>
+                            <li class="nav-item dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow">
+                                    <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
+                                        <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
+                                            <span style="color: rgb(247, 246, 244);" id="displayUsername">Loading...</span>&nbsp;
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                        <a class="dropdown-item" href="/Home/Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0" style="font-family: Orbitron, sans-serif;">Cryptocurrency Evolution</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="text-dark fw-bold m-0">Evolution des prix</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-area">
+                                        <canvas id="cryptoChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/js/chart.min.js"></script>
+    <script src="../assets/js/bs-init.js"></script>
+    <script src="../assets/js/theme.js"></script>
+    <script>
+        let cryptoChart;
+
+        async function updateChart() {
+            try {
+                const response = await fetch('/api/CryptoEvolution/evolution');
+                const data = await response.json();
+                console.log(data);
+                
+                const colors = [
+                    'rgb(255, 99, 132)',   // red
+                    'rgb(54, 162, 235)',   // blue
+                    'rgb(255, 206, 86)',   // yellow
+                    'rgb(75, 192, 192)',   // green
+                    'rgb(153, 102, 255)',  // purple
+                    'rgb(255, 159, 64)'    // orange
+                ];
+
+                const datasets = Object.entries(data).map(([crypto, values], index) => ({
+                    label: crypto,
+                    data: values.map(v => ({
+                        x: v.date,
+                        y: parseFloat(v.price)
+                    })),
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length].replace('rgb', 'rgba').replace(')', ', 0.2)'),
+                    fill: false
+                }));
+
+                // Get all unique dates for labels
+                const allDates = new Set();
+                Object.values(data).forEach(values => {
+                    values.forEach(v => allDates.add(v.date));
+                });
+                const labels = Array.from(allDates).sort();
+
+                if (cryptoChart) {
+                    cryptoChart.destroy();
+                }
+
+                const ctx = document.getElementById('cryptoChart').getContext('2d');
+                const config = {
+                    type: 'line',
+                    data: { 
+                        labels: labels,
+                        datasets: datasets 
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'hour',
+                                    displayFormats: {
+                                        hour: 'DD/MM HH:mm'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Datetime'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Value (€)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toFixed(2) + '€';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}€`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                cryptoChart = new Chart(ctx, config);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Initial update
+        document.addEventListener('DOMContentLoaded', updateChart);
+        
+        // Update every minute
+        // setInterval(updateChart, 60000);
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/Home/Login';
+        }
+    </script>
+</body>
+</html> 
