@@ -93,7 +93,7 @@
                         </div>
                         <div class="card-body">
                             <form id="filterForm" class="row g-3">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Type de transaction</label>
                                     <select class="form-select" id="typeFilter">
                                         <option value="">Tous</option>
@@ -101,11 +101,25 @@
                                         <option value="SELL">Ventes</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Utilisateur</label>
                                     <select class="form-select" id="userFilter">
                                         <option value="">Tous</option>
                                     </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Crypto</label>
+                                    <select class="form-select" id="cryptoFilter">
+                                        <option value="">Toutes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Date début</label>
+                                    <input type="datetime-local" class="form-control" id="startDate">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Date fin</label>
+                                    <input type="datetime-local" class="form-control" id="endDate">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Trier par</label>
@@ -140,11 +154,11 @@
                                             <th>Date</th>
                                             <th>Type</th>
                                             <th>Utilisateur</th>
+                                            <th>Photo</th>
                                             <th>Crypto</th>
                                             <th>Quantité</th>
                                             <th>Prix unitaire</th>
                                             <th>Montant total</th>
-                                            <th>Statut</th>
                                         </tr>
                                     </thead>
                                     <tbody id="transactionsTableBody">
