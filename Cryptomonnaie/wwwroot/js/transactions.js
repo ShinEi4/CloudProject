@@ -11,6 +11,9 @@ async function loadTransactions(page = 1) {
 
         const typeFilter = document.getElementById('typeFilter').value;
         const userFilter = document.getElementById('userFilter').value;
+        const cryptoFilter = document.getElementById('cryptoFilter').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
         const sortBy = document.getElementById('sortBy').value;
         const sortOrder = document.getElementById('sortOrder').value;
 
@@ -20,6 +23,9 @@ async function loadTransactions(page = 1) {
         
         if (typeFilter) url.searchParams.append('type', typeFilter);
         if (userFilter) url.searchParams.append('userId', userFilter);
+        if (cryptoFilter) url.searchParams.append('cryptoId', cryptoFilter);
+        if (startDate) url.searchParams.append('startDate', startDate);
+        if (endDate) url.searchParams.append('endDate', endDate);
         if (sortBy) url.searchParams.append('sortBy', sortBy);
         if (sortOrder) url.searchParams.append('sortOrder', sortOrder);
 
@@ -42,14 +48,20 @@ async function loadTransactions(page = 1) {
             tr.innerHTML = `
                 <td>${new Date(transaction.date).toLocaleString()}</td>
                 <td>${transaction.type === 'BUY' ? 'Achat' : 'Vente'}</td>
-                <td>${transaction.username}</td>
+                <td>
+                    <a href="#" onclick="filterByUser(${transaction.user_id}); return false;">
+                        ${transaction.username}
+                    </a>
+                </td>
+                <td>
+                    <a href="#" onclick="filterByUser(${transaction.user_id}); return false;">
+                    <div style="width: 32px; height: 32px;" class="rounded-circle bg-light"></div>
+                    </a>
+                </td>
                 <td>${transaction.crypto}</td>
                 <td>${transaction.quantite.toFixed(6)}</td>
                 <td>${transaction.prix_unitaire.toFixed(2)}€</td>
                 <td>${transaction.montant_total.toFixed(2)}€</td>
-                <td>${transaction.is_validate ? 
-                    '<span class="badge bg-success">Validé</span>' : 
-                    '<span class="badge bg-warning">En attente</span>'}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -166,9 +178,52 @@ async function loadUserInfo() {
     }
 }
 
+// Fonction pour filtrer par utilisateur
+function filterByUser(userId) {
+    document.getElementById('userFilter').value = userId;
+    loadTransactions(1);
+}
+
+// Ajouter le chargement des cryptos
+async function loadCryptos() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/crypto', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch cryptos');
+        }
+
+        const cryptos = await response.json();
+        const select = document.getElementById('cryptoFilter');
+
+        cryptos.forEach(crypto => {
+            const option = document.createElement('option');
+            option.value = crypto.id;
+            option.textContent = crypto.nom;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();
     loadUsers();
+    loadCryptos();
     loadTransactions();
+
+    // Initialiser les dates par défaut (dernier mois)
+    const now = new Date();
+    const lastMonth = new Date(now);
+    lastMonth.setMonth(now.getMonth() - 1);
+
+    document.getElementById('startDate').value = lastMonth.toISOString().slice(0, 16);
+    document.getElementById('endDate').value = now.toISOString().slice(0, 16);
 });
 

@@ -27,7 +27,6 @@ namespace Cryptomonnaie.Controllers
 
                 var whereClause = new List<string>();
                 var parameters = new List<NpgsqlParameter>();
-                var orderClause = "t.date_transaction DESC";
 
                 if (!string.IsNullOrEmpty(filter.Type))
                 {
@@ -53,7 +52,14 @@ namespace Cryptomonnaie.Controllers
                     parameters.Add(new NpgsqlParameter("@endDate", filter.EndDate.Value));
                 }
 
-                // Gestion du tri
+                if (filter.CryptoId.HasValue)
+                {
+                    whereClause.Add("c.id_crypto = @cryptoId");
+                    parameters.Add(new NpgsqlParameter("@cryptoId", filter.CryptoId.Value));
+                }
+
+                var orderClause = "t.date_transaction DESC";
+
                 if (!string.IsNullOrEmpty(filter.SortBy))
                 {
                     var sortField = filter.SortBy.ToLower() switch
@@ -82,10 +88,10 @@ namespace Cryptomonnaie.Controllers
                             COALESCE(t.quantiteSortie, 0) as quantite_sortie,
                             t.prix_unitaire,
                             t.date_transaction,
-                            t.is_validate,
                             u.username,
                             u.id_utilisateur,
-                            c.nom_crypto
+                            c.nom_crypto,
+                            c.id_crypto
                         FROM Transaction t
                         JOIN portefeuille_crypto pc ON t.id_portefeuille_crypto = pc.id_portefeuille_crypto
                         JOIN portefeuille p ON pc.id_portefeuille = p.id_portefeuille
@@ -103,13 +109,11 @@ namespace Cryptomonnaie.Controllers
 
                 using var cmd = new NpgsqlCommand(query, connection);
                 
-                // Ajouter les paramètres de filtrage s'ils existent
                 foreach (var param in parameters)
                 {
                     cmd.Parameters.Add(param);
                 }
 
-                // Ajouter les paramètres de pagination
                 cmd.Parameters.AddWithValue("@pageSize", filter.PageSize);
                 cmd.Parameters.AddWithValue("@offset", (filter.Page - 1) * filter.PageSize);
 
@@ -129,7 +133,6 @@ namespace Cryptomonnaie.Controllers
                             : reader.GetDecimal(reader.GetOrdinal("quantite_sortie")),
                         prix_unitaire = reader.GetDecimal(reader.GetOrdinal("prix_unitaire")),
                         date = reader.GetDateTime(reader.GetOrdinal("date_transaction")),
-                        is_validate = reader.GetBoolean(reader.GetOrdinal("is_validate")),
                         username = reader.GetString(reader.GetOrdinal("username")),
                         user_id = reader.GetInt32(reader.GetOrdinal("id_utilisateur")),
                         crypto = reader.GetString(reader.GetOrdinal("nom_crypto")),
