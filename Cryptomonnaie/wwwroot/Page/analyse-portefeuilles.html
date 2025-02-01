@@ -52,8 +52,25 @@
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="Portfolio"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile and wallet</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Evolution"><i class="fas fa-chart-line"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
@@ -77,8 +94,6 @@
                         </div>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.html"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="register.html"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -98,9 +113,10 @@
                                         </span>
                                     </a>
                                     <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
-                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
                                 </div>
                             </li>
@@ -225,6 +241,11 @@
                 console.error('Error:', error);
                 alert('Erreur lors de l\'analyse: ' + error.message);
             }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/Home/Login';
         }
 
         function showDetails(holdings) {

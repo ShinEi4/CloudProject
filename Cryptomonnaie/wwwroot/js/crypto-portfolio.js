@@ -33,6 +33,12 @@ async function loadUserInfo() {
     }
 }
 
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/Home/Login';
+}
+
+
 // Fonctions existantes modifiées pour utiliser le token
 async function loadPortfolio() {
     try {

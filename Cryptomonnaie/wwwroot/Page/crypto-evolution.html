@@ -17,21 +17,67 @@
 
 <body id="page-top">
     <div id="wrapper">
-        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark" style="background: #bfb699;">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark"
+            style="background: #bfb699;">
             <div class="container-fluid d-flex flex-column p-0">
                 <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
                     <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
-                    <div class="sidebar-brand-text mx-3"><span style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                    <div class="sidebar-brand-text mx-3"><span
+                            style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item"><a class="nav-link active" href="/Home/Evolution"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Home/Profile"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Home/Cours"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Cours</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Home/Login"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="/Home/Register"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
+                    <li class="nav-item"><a class="nav-link active" href="Evolution"><i class="fas fa-chart-line"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown"
+                            style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span
+                                style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-line"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Analyses</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown"
+                            style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="AnalyseTransactions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Transactions</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalysePortefeuilles">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Portefeuilles</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalyseCommissions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Commissions</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span
+                                style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
                 </ul>
-                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle"
+                        type="button"></button></div>
             </div>
         </nav>
         <div class="d-flex flex-column" id="content-wrapper">
@@ -44,11 +90,12 @@
                                 <div class="nav-item dropdown no-arrow">
                                     <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
                                         <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
-                                            <span style="color: rgb(247, 246, 244);" id="displayUsername">Loading...</span>&nbsp;
+                                            <span style="color: rgb(247, 246, 244);" id="displayUsername">...</span>&nbsp;
                                         </span>
                                     </a>
                                     <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
-                                        <a class="dropdown-item" href="/Home/Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
                                         <div class="dropdown-divider"></div>
                                         <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
