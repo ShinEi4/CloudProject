@@ -128,7 +128,7 @@
                 
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
-                    window.location.href = '/Home/Cours';
+                    window.location.href = '/Home/Profile';
                 } else {
                     alert(data.message || 'PIN verification failed');
                 }

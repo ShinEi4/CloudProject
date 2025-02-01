@@ -80,6 +80,12 @@ async function loadUserInfo() {
     }
 }
 
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/Home/Login';
+}
+
+
 // Appel de la fonction au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
     loadUserInfo();

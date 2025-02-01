@@ -26,8 +26,25 @@
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item"><a class="nav-link active" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="Portfolio"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile and wallet</span></a></li>
+                    <li class="nav-item"><a class="nav-link active" href="Evolution"><i class="fas fa-chart-line"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
@@ -51,8 +68,6 @@
                         </div>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.html"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="register.html"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -72,9 +87,10 @@
                                         </span>
                                     </a>
                                     <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
-                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
                                 </div>
                             </li>
@@ -114,7 +130,101 @@
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="../assets/js/bs-init.js"></script>
     <script src="../assets/js/theme.js"></script>
-    <script src="../js/crypto-cours.js"></script>
+    <script>
+        function updateCryptoPrices() {
+            fetch('/api/crypto/prices')
+                .then(response => response.json())
+                .then(data => {
+                    const cryptoList = document.getElementById('cryptoList');
+                    cryptoList.innerHTML = '';
+
+                    data.forEach(crypto => {
+                        const cryptoElement = document.createElement('div');
+                        cryptoElement.className = 'mb-4';
+                        cryptoElement.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h4 class="small fw-bold mb-0">${crypto.crypto}</h4>
+                    <div class="text-end">
+                        <span class="fw-bold">${crypto.prix.toFixed(2)}€</span>
+                        <span class="ms-2 ${crypto.variation >= 0 ? 'text-success' : 'text-danger'}">
+                            ${crypto.variation >= 0 ? '+' : ''}${crypto.variation.toFixed(2)}%
+                        </span>
+                    </div>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar ${crypto.cssClass}" 
+                            role="progressbar" 
+                            style="width: ${crypto.percentage}%;" 
+                            aria-valuenow="${crypto.percentage}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100"
+                            data-crypto="${crypto.crypto}">
+                        ${crypto.percentage.toFixed(1)}%
+                    </div>
+                </div>
+            `;
+                        cryptoList.appendChild(cryptoElement);
+                    });
+
+                    // Mettre à jour l'horodatage
+                    document.getElementById('lastUpdate').textContent =
+                        `Dernière mise à jour : ${new Date().toLocaleTimeString()}`;
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    document.getElementById('cryptoList').innerHTML = `
+            <div class="alert alert-danger">
+                Erreur lors de la récupération des données: ${error.message}
+            </div>
+        `;
+                });
+        }
+
+        // Mettre à jour toutes les 10 secondes
+        setInterval(updateCryptoPrices, 10000);
+
+        // Première mise à jour
+        updateCryptoPrices();
+
+        // Ajout de la fonction pour charger les informations de l'utilisateur
+        async function loadUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/Home/Login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Authentication/user-info', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user info');
+                }
+
+                const userData = await response.json();
+                document.getElementById('userDisplayName').textContent = userData.username;
+            } catch (error) {
+                console.error('Error:', error);
+                window.location.href = '/Home/Login';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/Home/Login';
+        }
+
+
+        // Appel de la fonction au chargement de la page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            updateCryptoPrices();
+        });
+    </script>
 </body>
 
 </html> 

@@ -133,6 +133,12 @@ async function loadUsers() {
     }
 }
 
+function logout() {
+    localStorage.removeItem('token');
+    window.location.href = '/Home/Login';
+}
+
+
 // Event Listeners
 document.getElementById('filterForm').addEventListener('submit', (e) => {
     e.preventDefault();

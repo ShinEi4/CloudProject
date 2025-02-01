@@ -35,8 +35,25 @@
                 </a>
                 <hr class="sidebar-divider my-0">
                 <ul class="navbar-nav text-light" id="accordionSidebar">
-                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
-                    <li class="nav-item"><a class="nav-link active" href="Portfolio"><i class="fas fa-user"></i><span style="font-family: Orbitron, sans-serif;">Profile and wallet</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Evolution"><i class="fas fa-chart-line"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
@@ -60,8 +77,6 @@
                         </div>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="login.html"><i class="far fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Login</span></a></li>
-                    <li class="nav-item"><a class="nav-link" href="register.html"><i class="fas fa-user-circle"></i><span style="font-family: Orbitron, sans-serif;">Register</span></a></li>
                 </ul>
                 <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
             </div>
@@ -81,9 +96,10 @@
                                         </span>
                                     </a>
                                     <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
-                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
                                         <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
                                     </div>
                                 </div>
                             </li>
@@ -161,7 +177,197 @@
     <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="../assets/js/bs-init.js"></script>
     <script src="../assets/js/theme.js"></script>
-    <script src="../js/crypto-portfolio.js"></script>
+    <script>
+        let userId = null;
+        let userName = null;
+
+        // Fonction pour charger les informations de l'utilisateur
+        async function loadUserInfo() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/Home/Login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/Authentication/user-info', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user info');
+                }
+
+                const userData = await response.json();
+                userId = userData.id;
+                userName = userData.username; // Supposons que l'API renvoie un champ username
+                document.getElementById('userDisplayName').textContent = userName;
+                loadPortfolio();
+                loadCryptoList();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load user information');
+                window.location.href = '/Home/Login';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/Home/Login';
+        }
+
+
+        // Fonctions existantes modifiées pour utiliser le token
+        async function loadPortfolio() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/CryptoTransaction/portfolio/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+
+                const tbody = document.getElementById('portfolioTableBody');
+                tbody.innerHTML = '';
+
+                data.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+            <td>${item.crypto}</td>
+            <td>${item.montant.toFixed(6)}</td>
+            <td>${item.prix_actuel.toFixed(2)}€</td>
+            <td>${item.valeur_totale.toFixed(2)}€</td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="prepareTransaction('buy', '${item.crypto}')">Acheter</button>
+                <button class="btn btn-sm btn-danger" onclick="prepareTransaction('sell', '${item.crypto}')">Vendre</button>
+            </td>
+        `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        async function loadCryptoList() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/crypto/prices', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+
+                const select = document.getElementById('cryptoSelect');
+                const selectedValue = select.value; // Sauvegarder la valeur sélectionnée
+                select.innerHTML = '';
+
+                data.forEach(crypto => {
+                    const option = document.createElement('option');
+                    option.value = crypto.id;
+                    option.textContent = `${crypto.crypto} (${crypto.prix.toFixed(2)}€)`;
+                    option.dataset.nom = crypto.crypto;
+                    select.appendChild(option);
+                });
+
+                // Restaurer la sélection si elle existe toujours
+                if (selectedValue && Array.from(select.options).some(opt => opt.value === selectedValue)) {
+                    select.value = selectedValue;
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+            }
+        }
+
+        function prepareTransaction(type, cryptoName) {
+            const select = document.getElementById('cryptoSelect');
+            const option = Array.from(select.options).find(opt => opt.dataset.nom === cryptoName);
+            if (option) {
+                document.getElementById('transactionType').value = type;
+                select.value = option.value;
+                document.getElementById('quantity').value = '';
+                document.getElementById('quantity').focus();
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const type = document.getElementById('transactionType').value;
+            const cryptoId = parseInt(document.getElementById('cryptoSelect').value);
+            const quantity = parseFloat(document.getElementById('quantity').value);
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/CryptoTransaction/${type}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        cryptoId: cryptoId,
+                        quantite: quantity
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    let message = `
+            ${result.message}
+            ${type === 'buy' ? 'Coût total' : 'Montant reçu'}: ${(result.cout || result.montant_recu).toFixed(2)}€
+            Ancien solde: ${result.ancien_solde.toFixed(2)}€
+            Nouveau solde: ${result.nouveau_solde.toFixed(2)}€`;
+
+                    if (result.ancien_solde_crypto !== undefined) {
+                        message += `
+            Ancien solde crypto: ${result.ancien_solde_crypto.toFixed(6)}
+            Nouveau solde crypto: ${result.nouveau_solde_crypto.toFixed(6)}`;
+                    }
+
+                    alert(message);
+                    loadPortfolio();
+                } else {
+                    let errorMessage = 'Erreur: ';
+                    if (result.message) {
+                        errorMessage += result.message;
+                        if (result.details) {
+                            if (typeof result.details === 'object') {
+                                errorMessage += '\n\nDétails:';
+                                for (const [key, value] of Object.entries(result.details)) {
+                                    errorMessage += `\n${key.replace(/_/g, ' ')}: ${typeof value === 'number' ? value.toFixed(6) : value}`;
+                                }
+                            } else {
+                                errorMessage += `\n\nDétails: ${result.details}`;
+                            }
+                        }
+                    } else {
+                        errorMessage += 'Une erreur inattendue est survenue';
+                    }
+                    alert(errorMessage);
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert(`Erreur lors de la transaction: ${error.message}`);
+            }
+        });
+
+        // Initialisation et mise à jour périodique
+        document.addEventListener('DOMContentLoaded', loadUserInfo);
+        setInterval(() => {
+            if (userId) {
+                loadPortfolio();
+                loadCryptoList(); // Ajout de la mise à jour des prix dans le select
+            }
+        }, 10000);
+    </script>
 </body>
 
 </html> 
