@@ -17,7 +17,7 @@ function hashPassword(password) {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, isAdmin } = req.body;
 
     // Vérifier que tous les champs sont remplis
     if (!email || !password) {
@@ -28,6 +28,11 @@ exports.login = async (req, res) => {
     const user = await UserModel.getByEmail(email);
     if (!user) {
       return res.status(401).json({ message: 'Identifiants incorrects.' });
+    }
+
+    // Check if user is admin for admin login
+    if (isAdmin && !user.is_admin) {
+      return res.status(403).json({ message: 'Acces refuse. Administrateur seulement' });
     }
 
     // Compter les tentatives échouées
@@ -119,7 +124,7 @@ exports.login = async (req, res) => {
 // Valider le code PIN pour finaliser la connexion
 exports.verifyPin = async (req, res) => {
   try {
-    const { email, codePin } = req.body;
+    const { email, codePin, isAdmin } = req.body;
 
     // Vérifier que tous les champs sont remplis
     if (!email || !codePin) {
@@ -136,6 +141,11 @@ exports.verifyPin = async (req, res) => {
     const user = await UserModel.getByEmail(email);
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur introuvable.'});
+    }
+
+    // Check if user is admin for admin pin verification
+    if (isAdmin && !user.is_admin) {
+      return res.status(403).json({ message: 'Acces refuse. Administrateur seulement' });
     }
 
     // Mettre à jour la dernière connexion pour la marquer comme valide

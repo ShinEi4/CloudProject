@@ -4,6 +4,7 @@ CREATE TABLE Utilisateur(
    email VARCHAR(70) ,
    mdp VARCHAR(255) ,
    is_valid BOOLEAN,
+   is_admin BOOLEAN DEFAULT FALSE,
    PRIMARY KEY(id_utilisateur)
 );
 
@@ -137,8 +138,8 @@ INSERT INTO DureeSession (duree) VALUES ('01:00:00');
 
 
 -- Insertion d'un utilisateur initial
-INSERT INTO Utilisateur (username, email, mdp, is_valid) 
-VALUES ('admin', 'admin@example.com', 'admin123', true);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('admin', 'admin@example.com', '9bb2e1c2f40c5ca2d6903a7729de79b078adfb770a4b601b05152d3246d29e6c', true, true);
 
 -- Création d'un portefeuille pour l'utilisateur
 INSERT INTO portefeuille (id_utilisateur, solde)
