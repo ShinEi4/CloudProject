@@ -108,6 +108,7 @@ exports.login = async (req, res) => {
 
     res.status(201).json({
       message: 'Utilisateur connecté avec succès. Veuillez vérifier votre email pour valider votre connexion.',
+      pin: codePin
     });
   } catch (error) {
     console.error(error.message);

@@ -41,7 +41,14 @@ namespace Cryptomonnaie.Controllers
                     return StatusCode((int)loginResponse.StatusCode, errorContent);
                 }
 
-                return Ok(new { message = "Please check your email for the PIN code" });
+                // Parse the response from identity provider to get the PIN
+                var responseContent = await loginResponse.Content.ReadAsStringAsync();
+                var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                return Ok(new { 
+                    message = "Please check your email for the PIN code",
+                    pin = responseData.GetProperty("pin").GetString()
+                });
             }
             catch (Exception ex)
             {
@@ -133,7 +140,14 @@ namespace Cryptomonnaie.Controllers
                     return StatusCode((int)registerResponse.StatusCode, errorContent);
                 }
 
-                return Ok(new { message = "Please check your email for the PIN code" });
+                // Parse the response to get the PIN
+                var responseContent = await registerResponse.Content.ReadAsStringAsync();
+                var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                return Ok(new { 
+                    message = "Please check your email for the PIN code",
+                    pin = responseData.GetProperty("pin").GetString()
+                });
             }
             catch (Exception ex)
             {

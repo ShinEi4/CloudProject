@@ -104,6 +104,9 @@
                 if (response.ok) {
                     document.getElementById('registerForm').style.display = 'none';
                     document.getElementById('pinForm').style.display = 'block';
+                    if (data.pin) {
+                        document.getElementById('pin').value = data.pin;
+                    }
                     alert('Please check your email for the PIN code');
                 } else {
                     alert(data.message || 'Registration failed');
