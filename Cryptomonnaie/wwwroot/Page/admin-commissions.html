@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Gestion des Commissions</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Anton.css">
+    <link rel="stylesheet" href="../assets/css/Exo%202.css">
+    <link rel="stylesheet" href="../assets/css/Nunito.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome5-overrides.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #363636 100%);
+            color: #bfb699;
+        }
+        .table {
+            color: #2a2d36;
+        }
+        .form-label {
+            color: #2a2d36;
+        }
+        .card-header {
+            background: rgba(191, 182, 153, 0.1);
+        }
+        .text-primary {
+            color: #bfb699 !important;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark" style="background: #bfb699;">
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
+                    <div class="sidebar-brand-text mx-3"><span style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link" href="Evolution"><i class="fas fa-chart-line"></i><span style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-chart-line"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Analyses</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="AnalyseTransactions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Transactions</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalysePortefeuilles">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Portefeuilles</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalyseCommissions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Commissions</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="ValiderDepotRetrait"><i class="fas fa-money-check-alt"></i><span style="font-family: Orbitron, sans-serif;">Valider depot et retrait</span></a></li>
+                </ul>
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle" type="button"></button></div>
+            </div>
+
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <nav class="navbar navbar-expand shadow mb-4 topbar static-top navbar-light" style="border-color: #596069;background: #596069;">
+                    <div class="container-fluid">
+                        <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                        <ul class="navbar-nav flex-nowrap ms-auto" style="background: #596069;">
+                            <div class="d-none d-sm-block topbar-divider"></div>
+                            <li class="nav-item dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow">
+                                    <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
+                                        <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
+                                            <span style="color: rgb(247, 246, 244);" id="userDisplayName">...</span>&nbsp;
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0" style="font-family: Orbitron, sans-serif;">Gestion des Commissions</h3>
+                    </div>
+
+                    <div class="row">
+                        <!-- Commissions actuelles -->
+                        <div class="col-xl-6 mb-4">
+                            <div class="card shadow">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="text-primary fw-bold m-0">Commissions actuelles</h6>
+                                    <button class="btn btn-primary btn-sm" onclick="showNewCommissionModal()">
+                                        <i class="fas fa-plus"></i> Nouvelle commission
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Pourcentage</th>
+                                                    <th>Dernière modification</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="commissionsTableBody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Historique des commissions -->
+                        <div class="col-xl-6 mb-4">
+                            <div class="card shadow">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="text-primary fw-bold m-0">Historique des commissions</h6>
+                                    <select class="form-select form-select-sm" style="width: auto;" id="typeFilter" onchange="loadHistorique()">
+                                        <option value="">Tous les types</option>
+                                        <option value="ACHAT">Achat</option>
+                                        <option value="VENTE">Vente</option>
+                                    </select>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Pourcentage</th>
+                                                    <th>Date de modification</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="historiqueTableBody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    </div>
+
+    <!-- Modal de modification -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier la commission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <input type="hidden" id="editType">
+                        <div class="mb-3">
+                            <label class="form-label">Pourcentage</label>
+                            <input type="number" class="form-control" id="editPourcentage" 
+                                   step="0.01" min="0" max="100" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="addCommission()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ajoutons un nouveau modal pour la création -->
+    <div class="modal fade" id="newCommissionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Nouvelle commission</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newCommissionForm">
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="newType" required>
+                                <option value="ACHAT">Achat</option>
+                                <option value="VENTE">Vente</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pourcentage</label>
+                            <input type="number" class="form-control" id="newPourcentage" 
+                                   step="0.01" min="0" max="100" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" onclick="addNewCommission()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/js/bs-init.js"></script>
+    <script src="../assets/js/theme.js"></script>
+
+    <script>
+        let editModal;
+        let newCommissionModal;
+
+        async function loadCommissions() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    window.location.href = '/BackOffice/Login';
+                    return;
+
+                }
+
+                const response = await fetch('/api/Commission', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch commissions');
+                }
+
+                const commissions = await response.json();
+                const tbody = document.getElementById('commissionsTableBody');
+                tbody.innerHTML = '';
+
+                commissions.forEach(commission => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${commission.type === 'ACHAT' ? 'Achat' : 'Vente'}</td>
+                        <td>${commission.pourcentage.toFixed(2)}%</td>
+                        <td>${new Date(commission.dateModification).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" 
+                                    onclick="showEditModal('${commission.type}', ${commission.pourcentage})">
+                                Modifier
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des commissions');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/BackOffice/Login';
+        }
+
+
+        async function loadHistorique() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const type = document.getElementById('typeFilter').value;
+                
+
+                let url = '/api/Commission/historique';
+                if (type) {
+                    url += `?type=${type}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch historique');
+                }
+
+                const historique = await response.json();
+                const tbody = document.getElementById('historiqueTableBody');
+                tbody.innerHTML = '';
+
+                historique.forEach(commission => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${commission.type === 'ACHAT' ? 'Achat' : 'Vente'}</td>
+                        <td>${commission.pourcentage.toFixed(2)}%</td>
+                        <td>${new Date(commission.dateModification).toLocaleString()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement de l\'historique');
+            }
+        }
+
+        function showEditModal(type, pourcentage) {
+            document.getElementById('editType').value = type;
+            document.getElementById('editPourcentage').value = pourcentage;
+            editModal.show();
+        }
+
+        async function addCommission() {
+            try {
+                const type = document.getElementById('editType').value;
+                const pourcentage = parseFloat(document.getElementById('editPourcentage').value);
+
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('/api/Commission', {
+                    method: 'POST',
+                    headers: {
+
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ type, pourcentage })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'ajout');
+                }
+
+                editModal.hide();
+                await loadCommissions();
+                await loadHistorique();
+                alert('Commission ajoutée avec succès');
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+
+        function showNewCommissionModal() {
+            document.getElementById('newType').value = 'ACHAT';
+            document.getElementById('newPourcentage').value = '';
+            newCommissionModal.show();
+        }
+
+        async function addNewCommission() {
+            try {
+                const type = document.getElementById('newType').value;
+                const pourcentage = parseFloat(document.getElementById('newPourcentage').value);
+
+                if (isNaN(pourcentage) || pourcentage < 0 || pourcentage > 100) {
+                    throw new Error('Le pourcentage doit être entre 0 et 100');
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/Commission', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ type, pourcentage })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Erreur lors de l\'ajout');
+                }
+
+                newCommissionModal.hide();
+                await loadCommissions();
+                await loadHistorique();
+                alert('Commission ajoutée avec succès');
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            editModal = new bootstrap.Modal(document.getElementById('editModal'));
+            newCommissionModal = new bootstrap.Modal(document.getElementById('newCommissionModal'));
+            loadCommissions();
+            loadHistorique();
+        });
+    </script>
+</body>
+
+</html> 

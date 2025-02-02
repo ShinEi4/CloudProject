@@ -16,19 +16,49 @@ namespace Cryptomonnaie.Controllers
             return File("~/Page/admin-login.html", "text/html");
         }
 
-        public IActionResult Dashboard()
+        public IActionResult Evolution()
         {
-            return File("~/Page/admin-dashboard.html", "text/html");
+            return File("~/Page/admin-evolution.html", "text/html");
         }
 
-        public IActionResult Users()
+        public IActionResult Cours()
         {
-            return File("~/Page/admin-users.html", "text/html");
+            return File("~/Page/admin-cours.html", "text/html");
         }
 
-        public IActionResult Settings()
+        public IActionResult Profile()
         {
-            return File("~/Page/admin-settings.html", "text/html");
+            return File("~/Page/admin-profile.html", "text/html");
+        }
+
+        public IActionResult Portfolio()
+        {
+            return File("~/Page/admin-portfolio.html", "text/html");
+        }
+
+        public IActionResult Transactions()
+        {
+            return File("~/Page/admin-transactions.html", "text/html");
+        }
+
+        public IActionResult AnalyseTransactions()
+        {
+            return File("~/Page/admin-analyse-transactions.html", "text/html");
+        }
+
+        public IActionResult AnalysePortefeuilles()
+        {
+            return File("~/Page/admin-analyse-portefeuilles.html", "text/html");
+        }
+
+        public IActionResult AnalyseCommissions()
+        {
+            return File("~/Page/admin-analyse-commissions.html", "text/html");
+        }
+
+        public IActionResult Commissions()
+        {
+            return File("~/Page/admin-commissions.html", "text/html");
         }
     }
 } 
