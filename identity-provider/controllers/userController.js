@@ -110,6 +110,7 @@ exports.registerUser = async (req, res) => {
 
     res.status(201).json({
       message: 'Utilisateur créé avec succès. Veuillez vérifier votre email pour valider votre inscription.',
+      pin: codePin
     });
   } catch (error) {
     console.error(error.message);
