@@ -104,4 +104,7 @@ router.post('/verify-pin', verifyPin);
  */
 router.get('/verify-token', verifyToken);
 
+router.post('/admin-login', login);
+router.post('/verify-admin-pin', verifyPin);
+
 module.exports = router;

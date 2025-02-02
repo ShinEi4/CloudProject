@@ -208,6 +208,75 @@ namespace Cryptomonnaie.Controllers
                 return StatusCode(500, "An error occurred during registration PIN verification");
             }
         }
+
+        [HttpPost("admin-login")]
+        public async Task<IActionResult> AdminLogin([FromBody] LoginRequest request)
+        {
+            try
+            {
+                var loginContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        email = request.Email, 
+                        password = request.Password,
+                        isAdmin = true 
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var loginResponse = await _httpClient.PostAsync("http://node_app:3000/api/auth/admin-login", loginContent);
+                
+                if (!loginResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await loginResponse.Content.ReadAsStringAsync();
+                    return StatusCode((int)loginResponse.StatusCode, errorContent);
+                }
+
+                var responseContent = await loginResponse.Content.ReadAsStringAsync();
+                var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                return Ok(new { 
+                    message = "Please check your email for the PIN code",
+                    pin = responseData.GetProperty("pin").GetString()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during admin login process");
+                return StatusCode(500, "An error occurred during the login process");
+            }
+        }
+
+        [HttpPost("verify-admin-pin")]
+        public async Task<IActionResult> VerifyAdminPin([FromBody] VerifyPinRequest request)
+        {
+            try
+            {
+                var verifyContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        email = request.Email, 
+                        codePin = request.Pin,
+                        isAdmin = true
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var verifyResponse = await _httpClient.PostAsync("http://node_app:3000/api/auth/verify-admin-pin", verifyContent);
+
+                if (!verifyResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await verifyResponse.Content.ReadAsStringAsync();
+                    return StatusCode((int)verifyResponse.StatusCode, errorContent);
+                }
+
+                var responseContent = await verifyResponse.Content.ReadAsStringAsync();
+                return Ok(JsonSerializer.Deserialize<object>(responseContent));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during admin PIN verification");
+                return StatusCode(500, "An error occurred during PIN verification");
+            }
+        }
     }
 
     public class LoginRequest
