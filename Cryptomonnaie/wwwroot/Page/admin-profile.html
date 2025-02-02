@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Profile - Brand</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Anton.css">
+    <link rel="stylesheet" href="../assets/css/Exo%202.css">
+    <link rel="stylesheet" href="../assets/css/Nunito.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome5-overrides.min.css">
+</head>
+
+<body id="page-top">
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark"
+            style="background: #bfb699;">
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
+                    <div class="sidebar-brand-text mx-3"><span
+                            style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link" href="Evolution"><i class="fas fa-chart-line"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span
+                                style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-line"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Analyses</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown"
+                            style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="AnalyseTransactions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Transactions</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalysePortefeuilles">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Portefeuilles</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalyseCommissions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Commissions</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span
+                                style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="ValiderDepotRetrait"><i class="fas fa-money-check-alt"></i><span
+                                style="font-family: Orbitron, sans-serif;">Valider depot et retrait</span></a></li>
+                </ul>
+
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle"
+                        type="button"></button></div>
+            </div>
+        </nav>
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <nav class="navbar navbar-expand shadow mb-4 topbar static-top navbar-light" style="border-color: #596069;background: #596069;">
+                    <div class="container-fluid">
+                        <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                        <ul class="navbar-nav flex-nowrap ms-auto" style="background: #596069;">
+                            <div class="d-none d-sm-block topbar-divider"></div>
+                            <li class="nav-item dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow">
+                                    <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
+                                        <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
+                                            <span style="color: rgb(247, 246, 244);" id="userDisplayName">Chargement...</span>&nbsp;
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+                <div class="container-fluid">
+                    <h3 class="text-dark mb-4" style="font-family: Orbitron, sans-serif;">Profil</h3>
+                    <div class="row mb-3">
+                        <div class="col-lg-4">
+                            <div class="card mb-3">
+                                <div class="card-body text-center shadow"><img class="rounded-circle mb-3 mt-4" src="../assets/img/dogs/rb_4707.png" width="160" height="160"></div>
+                            </div>
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="fw-bold m-0" style="color: #2a2d36;font-family: Orbitron, sans-serif;">Credits&nbsp;</h6>
+                                    <h6 class="fw-bold m-0" style="color: #2a2d36;font-family: 'Exo 2', sans-serif;font-size: 35px;" id="walletBalance">Loading...</h6>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-lg text-uppercase" type="button" style="width: 100%;margin-bottom: 18px;font-family: Orbitron, sans-serif;font-size: 16px;background: #a09679;"> <a href="Portfolio" style="text-decoration: none; color: #2a2d36;">MON PORTFEUILLE</a></button>
+                            <button class="btn btn-primary btn-lg text-uppercase" type="button" style="width: 100%;margin-bottom: 18px;font-family: Orbitron, sans-serif;font-size: 16px;background: #596069;"> <a href="Cours" style="text-decoration: none; color: #a09679;">INVESTIR</a></button>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="row mb-3 d-none">
+                                <div class="col">
+                                    <div class="card text-white bg-primary shadow">
+                                        <div class="card-body">
+                                            <div class="row mb-2">
+                                                <div class="col">
+                                                    <p class="m-0">Peformance</p>
+                                                    <p class="m-0"><strong>65.2%</strong></p>
+                                                </div>
+                                                <div class="col-auto"><i class="fas fa-rocket fa-2x"></i></div>
+                                            </div>
+                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5% since last month</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="card text-white bg-success shadow">
+                                        <div class="card-body">
+                                            <div class="row mb-2">
+                                                <div class="col">
+                                                    <p class="m-0">Peformance</p>
+                                                    <p class="m-0"><strong>65.2%</strong></p>
+                                                </div>
+                                                <div class="col-auto"><i class="fas fa-rocket fa-2x"></i></div>
+                                            </div>
+                                            <p class="text-white-50 small m-0"><i class="fas fa-arrow-up"></i>&nbsp;5% since last month</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="card shadow mb-3">
+                                        <div class="card-header py-3">
+                                            <p class="m-0 fw-bold" style="font-family: Orbitron, sans-serif;color: #2a2d36;">Informations personnelles</p>
+                                        </div>
+                                        <div class="card-body">
+                                            <form>
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="mb-3"><label class="form-label" for="username" style="color: #596069;"><strong>Nom d'utilisateur</strong></label>
+                                                            <p id="displayUsername">Loading...</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col">
+                                                        <div class="mb-3"><label class="form-label" for="email"><strong>Adresse e-mail</strong></label>
+                                                            <p id="displayEmail">Loading...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3"></div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="card shadow">
+                                        <div class="card-header py-3">
+                                            <p class="m-0 fw-bold" style="font-family: Orbitron, sans-serif;color: #2a2d36;">Actions</p>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="depositForm" onsubmit="handleDeposit(event)">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="mb-3">
+                                                            <label class="form-label" for="depositAmount" style="font-family: 'Exo 2', sans-serif;">
+                                                                <strong>Depot de cash</strong>
+                                                            </label>
+                                                            <input class="form-control" type="number" id="depositAmount" 
+                                                                   placeholder="Entrer le montant" name="depositAmount" 
+                                                                   style="margin-bottom: 12px;" required min="0" step="0.01">
+                                                            <div class="mb-3">
+                                                                <button class="btn btn-dark" type="submit" 
+                                                                        style="font-family: 'Exo 2', sans-serif;">Valider</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="withdrawForm" onsubmit="handleWithdraw(event)">
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="mb-3">
+                                                            <label class="form-label" for="withdrawAmount" style="font-family: 'Exo 2', sans-serif;">
+                                                                <strong>Retrait de cash</strong>
+                                                            </label>
+                                                            <input class="form-control" type="number" id="withdrawAmount" 
+                                                                   placeholder="Entrer le montant" name="withdrawAmount" 
+                                                                   style="margin-bottom: 12px;" required min="0" step="0.01">
+                                                            <div class="mb-3">
+                                                                <button class="btn btn-dark" type="submit" 
+                                                                        style="font-family: 'Exo 2', sans-serif;">Valider</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow mb-5"></div>
+                </div>
+            </div>
+        </div><a class="border rounded d-inline scroll-to-top" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    </div>
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/js/bs-init.js"></script>
+    <script src="../assets/js/theme.js"></script>
+    <script>
+        let currentWalletId = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                window.location.href = '/BackOffice/Login';
+                return;
+
+            }
+
+            try {
+                const response = await fetch('/api/Authentication/user-info', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user info');
+                }
+
+                const userData = await response.json();
+                document.getElementById('displayUsername').textContent = userData.username;
+                document.getElementById('userDisplayName').textContent = userData.username;
+                document.getElementById('displayEmail').textContent = userData.email;
+
+                // Fetch wallet balance
+                const walletResponse = await fetch(`/api/Portefeuille/${userData.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (walletResponse.ok) {
+                    const walletData = await walletResponse.json();
+                    currentWalletId = walletData.id_portefeuille;
+                    document.getElementById('walletBalance').textContent = `${walletData.solde} €`;
+                } else {
+                    document.getElementById('walletBalance').textContent = '0 €';
+                    console.error('Failed to fetch wallet balance');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load user information');
+            }
+        });
+
+        async function handleDeposit(event) {
+            event.preventDefault();
+            const amount = document.getElementById('depositAmount').value;
+            await handleTransaction('deposit', amount);
+        }
+
+        async function handleWithdraw(event) {
+            event.preventDefault();
+            const amount = document.getElementById('withdrawAmount').value;
+            await handleTransaction('withdraw', amount);
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/BackOffice/Login';
+        }
+
+
+        async function handleTransaction(type, amount) {
+            if (!currentWalletId) {
+                alert('Wallet not found');
+                return;
+            }
+
+            const token = localStorage.getItem('adminToken');
+            try {
+                const response = await fetch(`/api/Portefeuille/${currentWalletId}/${type}`, {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                });
+
+                if (response.ok) {
+                    alert(`${type.charAt(0).toUpperCase() + type.slice(1)} request submitted successfully`);
+                    // Refresh wallet balance
+                    location.reload();
+                } else {
+                    alert(`Failed to process ${type}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error processing ${type}`);
+            }
+        }
+    </script>
+</body>
+
+</html> 

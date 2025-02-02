@@ -125,7 +125,7 @@
                 
                 if (response.ok) {
                     localStorage.setItem('adminToken', data.token);
-                    window.location.href = '/BackOffice/Dashboard';
+                    window.location.href = '/BackOffice/Profile';
                 } else {
                     alert(data.message || 'PIN verification failed');
                 }
