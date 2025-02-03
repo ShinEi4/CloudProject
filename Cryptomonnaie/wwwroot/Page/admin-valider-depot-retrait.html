@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html data-bs-theme="light" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Validation des Dépôts et Retraits</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/Anton.css">
+    <link rel="stylesheet" href="../assets/css/Exo%202.css">
+    <link rel="stylesheet" href="../assets/css/Nunito.css">
+    <link rel="stylesheet" href="../assets/css/Orbitron.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="../assets/fonts/fontawesome5-overrides.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #363636 100%);
+            color: #bfb699;
+        }
+        .table {
+            color: #2a2d36;
+        }
+        .badge-pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-approved {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .badge-rejected {
+            background-color: #dc3545;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <nav class="navbar align-items-start sidebar sidebar-dark accordion bg-gradient-primary p-0 navbar-dark"
+            style="background: #bfb699;">
+            <div class="container-fluid d-flex flex-column p-0">
+                <a class="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0" href="#">
+                    <div class="sidebar-brand-icon rotate-n-15"><i class="fa fa-bitcoin"></i></div>
+                    <div class="sidebar-brand-text mx-3"><span
+                            style="font-size: 28px;font-family: Orbitron, sans-serif;">It-COIN</span></div>
+                </a>
+                <hr class="sidebar-divider my-0">
+                <ul class="navbar-nav text-light" id="accordionSidebar">
+                    <li class="nav-item"><a class="nav-link" href="Evolution"><i class="fas fa-chart-line"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Evolution</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="Cours"><i class="fas fa-tachometer-alt"></i><span
+                                style="font-family: Orbitron, sans-serif;">Crypto Cours</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Espace compte</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown" style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="Profile">
+                                <i class="fas fa-user fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Profile</span>
+                            </a>
+                            <a class="dropdown-item" href="Portfolio">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Portefeuille</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Transactions"><i class="fas fa-table"></i><span
+                                style="font-family: Orbitron, sans-serif;">Transactions</span></a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="analyseDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-line"></i>
+                            <span style="font-family: Orbitron, sans-serif;">Analyses</span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="analyseDropdown"
+                            style="background: rgba(191, 182, 153, 0.9);">
+                            <a class="dropdown-item" href="AnalyseTransactions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Transactions</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalysePortefeuilles">
+                                <i class="fas fa-wallet fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Portefeuilles</span>
+                            </a>
+                            <a class="dropdown-item" href="AnalyseCommissions">
+                                <i class="fas fa-chart-bar fa-sm fa-fw me-2"></i>
+                                <span style="font-family: Orbitron, sans-serif;">Analyse Commissions</span>
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="Commissions"><i class="fas fa-cash-register"></i><span
+                                style="font-family: Orbitron, sans-serif;">Commissions</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="ValiderDepotRetrait"><i class="fas fa-money-check-alt"></i><span
+                                style="font-family: Orbitron, sans-serif;">Valider depot et retrait</span></a></li>
+                </ul>
+
+                <div class="text-center d-none d-md-inline"><button class="btn rounded-circle border-0" id="sidebarToggle"
+                        type="button"></button></div>
+            </div>
+        </nav>
+
+        <div class="d-flex flex-column" id="content-wrapper">
+            <div id="content">
+                <nav class="navbar navbar-expand shadow mb-4 topbar static-top navbar-light" style="border-color: #596069;background: #596069;">
+                    <div class="container-fluid">
+                        <button class="btn btn-link d-md-none rounded-circle me-3" id="sidebarToggleTop" type="button"><i class="fas fa-bars"></i></button>
+                        <ul class="navbar-nav flex-nowrap ms-auto" style="background: #596069;">
+                            <div class="d-none d-sm-block topbar-divider"></div>
+                            <li class="nav-item dropdown no-arrow">
+                                <div class="nav-item dropdown no-arrow">
+                                    <a class="dropdown-toggle nav-link" aria-expanded="false" data-bs-toggle="dropdown" href="#" style="background: #596069;">
+                                        <span class="d-none d-lg-inline me-2 text-gray-600 small" style="font-family: Orbitron, sans-serif;color: #bfb699;">
+                                            <span style="color: rgb(247, 246, 244);" id="userDisplayName">Chargement...</span>&nbsp;
+                                        </span>
+                                    </a>
+                                    <div class="dropdown-menu shadow dropdown-menu-end animated--grow-in">
+                                        <a class="dropdown-item" href="Profile"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Profile</a>
+                                        <a class="dropdown-item" href="Portfolio"><i class="fas fa-user fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Mon portefeuille</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i>&nbsp;Logout</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <div class="container-fluid">
+                    <div class="d-sm-flex justify-content-between align-items-center mb-4">
+                        <h3 class="text-dark mb-0" style="font-family: Orbitron, sans-serif;">
+                            <i class="fas fa-money-check-alt me-2"></i>Validation des Dépôts et Retraits
+                        </h3>
+                    </div>
+
+                    <!-- Filtres -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="text-primary fw-bold m-0">Filtres</h6>
+                        </div>
+                        <div class="card-body">
+                            <form id="filterForm" class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Type d'opération</label>
+                                    <select class="form-select" id="typeOperation">
+                                        <option value="all">Tous</option>
+                                        <option value="depot">Dépôts</option>
+                                        <option value="retrait">Retraits</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary d-block">Filtrer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Liste des demandes -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="text-primary fw-bold m-0">Demandes en attente</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Utilisateur</th>
+                                            <th>Type</th>
+                                            <th>Montant</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="demandesTableBody">
+                                        <!-- Les demandes seront injectées ici -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../assets/js/bs-init.js"></script>
+    <script src="../assets/js/theme.js"></script>
+    <script>
+        async function loadDemandes() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const typeOperation = document.getElementById('typeOperation').value;
+
+                const url = new URL('/api/Portefeuille/demandes', window.location.origin);
+                if (typeOperation !== 'all') url.searchParams.append('type', typeOperation);
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erreur lors du chargement des demandes');
+
+                const demandes = await response.json();
+                const tbody = document.getElementById('demandesTableBody');
+                tbody.innerHTML = '';
+
+                demandes.forEach(demande => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(demande.date).toLocaleString()}</td>
+                        <td>${demande.username}</td>
+                        <td>${demande.type === 'DEPOSIT' ? 'Dépôt' : 'Retrait'}</td>
+                        <td>${demande.montant.toFixed(2)} €</td>
+                        <td>
+                            <button onclick="validerDemande(${demande.id}, 'approved')" class="btn btn-success btn-sm">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button onclick="validerDemande(${demande.id}, 'rejected')" class="btn btn-danger btn-sm">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors du chargement des demandes: ' + error.message);
+            }
+        }
+
+        async function validerDemande(id, decision) {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`/api/Portefeuille/valider/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ decision })
+                });
+
+                if (!response.ok) throw new Error('Erreur lors de la validation');
+
+                await loadDemandes();
+                alert('Demande traitée avec succès');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Erreur lors de la validation: ' + error.message);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/BackOffice/Login';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDemandes();
+            document.getElementById('filterForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                loadDemandes();
+            });
+        });
+    </script>
+</body>
+</html> 
