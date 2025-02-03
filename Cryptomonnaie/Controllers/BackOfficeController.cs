@@ -60,5 +60,10 @@ namespace Cryptomonnaie.Controllers
         {
             return File("~/Page/admin-commissions.html", "text/html");
         }
+
+        public IActionResult ValiderDepotRetrait()
+        {
+            return File("~/Page/admin-valider-depot-retrait.html", "text/html");
+        }
     }
 } 

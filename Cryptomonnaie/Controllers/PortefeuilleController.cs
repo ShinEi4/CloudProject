@@ -151,6 +151,180 @@ namespace Cryptomonnaie.Controllers
                 return StatusCode(500, new { message = "Error processing withdrawal" });
             }
         }
+
+        [HttpGet("demandes")]
+        public async Task<IActionResult> GetDemandes([FromQuery] string? type = null, [FromQuery] string? statut = null)
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                var whereConditions = new List<string>();
+                var parameters = new List<NpgsqlParameter>();
+
+                if (!string.IsNullOrEmpty(type))
+                {
+                    whereConditions.Add("ft.type = @type");
+                    parameters.Add(new NpgsqlParameter("@type", type));
+                }
+
+                if (!string.IsNullOrEmpty(statut))
+                {
+                    whereConditions.Add("ft.statut = @statut");
+                    parameters.Add(new NpgsqlParameter("@statut", statut));
+                }
+
+                var whereClause = whereConditions.Count > 0 
+                    ? "WHERE " + string.Join(" AND ", whereConditions)
+                    : "";
+
+                var query = $@"
+                    SELECT 
+                        ft.id_fond,
+                        ft.date_transaction,
+                        ft.type,
+                        ft.montant,
+                        u.username
+                    FROM fond_transaction ft
+                    JOIN portefeuille p ON ft.id_portefeuille = p.id_portefeuille
+                    JOIN Utilisateur u ON p.id_utilisateur = u.id_utilisateur
+                    WHERE ft.is_validate IS NULL
+                    {(whereClause != "" ? "AND " + whereClause.Substring(6) : "")}
+                    ORDER BY ft.date_transaction DESC";
+
+                using var cmd = new NpgsqlCommand(query, connection);
+                foreach (var param in parameters)
+                {
+                    cmd.Parameters.Add(param);
+                }
+
+                var demandes = new List<object>();
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    demandes.Add(new
+                    {
+                        id = reader.GetInt32(0),
+                        date = reader.GetDateTime(1),
+                        type = reader.GetString(2),
+                        montant = reader.GetDecimal(3),
+                        username = reader.GetString(4)
+                    });
+                }
+
+                return Ok(demandes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la récupération des demandes");
+                return StatusCode(500, new { message = "Erreur lors de la récupération des demandes" });
+            }
+        }
+
+        [HttpPost("valider/{id}")]
+        public async Task<IActionResult> ValiderDemande(int id, [FromBody] ValidationRequest request)
+        {
+            try
+            {
+                using var connection = GetConnection();
+                await connection.OpenAsync();
+                using var transaction = await connection.BeginTransactionAsync();
+
+                try
+                {
+                    // 1. Get transaction info
+                    var queryInfo = @"
+                        SELECT ft.type, ft.montant, ft.id_portefeuille, ft.is_validate
+                        FROM fond_transaction ft
+                        WHERE ft.id_fond = @id";
+
+                    using var cmdInfo = new NpgsqlCommand(queryInfo, connection);
+                    cmdInfo.Parameters.AddWithValue("@id", id);
+
+                    using var reader = await cmdInfo.ExecuteReaderAsync();
+                    if (!await reader.ReadAsync())
+                    {
+                        return NotFound(new { message = "Transaction not found" });
+                    }
+
+                    var type = reader.GetString(0);
+                    var montant = reader.GetDecimal(1);
+                    var portefeuilleId = reader.GetInt32(2);
+                    var isValidate = !reader.IsDBNull(3) ? reader.GetBoolean(3) : (bool?)null;
+
+                    reader.Close();
+
+                    if (isValidate.HasValue)
+                    {
+                        return BadRequest(new { message = "Transaction already processed" });
+                    }
+
+                    // 2. Update transaction status
+                    var updateQuery = @"
+                        UPDATE fond_transaction 
+                        SET is_validate = @isValidate
+                        WHERE id_fond = @id";
+
+                    using var cmdUpdate = new NpgsqlCommand(updateQuery, connection);
+                    cmdUpdate.Parameters.AddWithValue("@id", id);
+                    cmdUpdate.Parameters.AddWithValue("@isValidate", request.Decision == "approved");
+                    await cmdUpdate.ExecuteNonQueryAsync();
+
+                    // 3. If approved, update wallet balance
+                    if (request.Decision == "approved")
+                    {
+                        // For WITHDRAW, first check if there's enough balance
+                        if (type == "WITHDRAW")
+                        {
+                            var balanceQuery = @"
+                                SELECT solde 
+                                FROM portefeuille 
+                                WHERE id_portefeuille = @portefeuilleId";
+
+                            using var balanceCmd = new NpgsqlCommand(balanceQuery, connection);
+                            balanceCmd.Parameters.AddWithValue("@portefeuilleId", portefeuilleId);
+                            var currentBalance = (decimal)await balanceCmd.ExecuteScalarAsync();
+
+                            if (currentBalance < montant)
+                            {
+                                await transaction.RollbackAsync();
+                                return BadRequest(new { message = "Insufficient funds" });
+                            }
+                        }
+
+                        var updateBalance = @"
+                            UPDATE portefeuille 
+                            SET solde = solde + @amount
+                            WHERE id_portefeuille = @portefeuilleId";
+
+                        using var cmdBalance = new NpgsqlCommand(updateBalance, connection);
+                        cmdBalance.Parameters.AddWithValue("@portefeuilleId", portefeuilleId);
+                        cmdBalance.Parameters.AddWithValue("@amount", type switch
+                        {
+                            "DEPOSIT" => montant,
+                            "WITHDRAW" => -montant,
+                            _ => throw new InvalidOperationException($"Invalid transaction type: {type}")
+                        });
+                        await cmdBalance.ExecuteNonQueryAsync();
+                    }
+
+                    await transaction.CommitAsync();
+                    return Ok(new { message = "Transaction processed successfully" });
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing transaction {Id}", id);
+                return StatusCode(500, new { message = "Error processing transaction" });
+            }
+        }
     }
 
     public class CreateWalletRequest
@@ -161,5 +335,10 @@ namespace Cryptomonnaie.Controllers
     public class TransactionRequest
     {
         public decimal Amount { get; set; }
+    }
+
+    public class ValidationRequest
+    {
+        public string Decision { get; set; } // "approved" or "rejected"
     }
 } 
