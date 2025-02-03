@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Crypto Sync",
+    "slug": "crypto-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#2a2d36"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.votrecompagnie.cryptomobile",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2a2d36"
+      },
+      "package": "com.votrecompagnie.cryptomobile",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      "expo-font",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
+    ]
+  }
+}
