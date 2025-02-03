@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1088880255757",
+    "project_id": "test-5351e",
+    "storage_bucket": "test-5351e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088880255757:android:655c8e58817ee956d68644",
+        "android_client_info": {
+          "package_name": "com.votrecompagnie.cryptomobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx0rP371neb31LPrk7UpvFRfdfXAGzVRM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
