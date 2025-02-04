@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Crypto Sync",
+    "slug": "crypto-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#2a2d36"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#2a2d36"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permettez à $(PRODUCT_NAME) d'accéder à votre caméra."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permettez à $(PRODUCT_NAME) d'accéder à vos photos."
+        }
+      ]
+    ],
+    "newArchEnabled": true
+  }
+}
