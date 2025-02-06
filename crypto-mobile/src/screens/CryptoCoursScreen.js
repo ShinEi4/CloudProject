@@ -10,94 +10,174 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const { width } = Dimensions.get('window');
 
-// Données simulées
-const mockCryptoData = [
-  {
-    crypto: 'Bitcoin',
-    prix: 42567.89,
-    variation: 2.45,
-    percentage: 75.5,
-    isFavorite: false
-  },
-  {
-    crypto: 'Ethereum',
-    prix: 2234.56,
-    variation: -1.23,
-    percentage: 45.2,
-    isFavorite: false
-  },
-  {
-    crypto: 'Ripple',
-    prix: 0.5432,
-    variation: 5.67,
-    percentage: 30.8,
-    isFavorite: false
-  },
-  {
-    crypto: 'Cardano',
-    prix: 1.234,
-    variation: -0.89,
-    percentage: 25.4,
-    isFavorite: false
-  },
-  {
-    crypto: 'Solana',
-    prix: 89.76,
-    variation: 3.21,
-    percentage: 62.3,
-    isFavorite: false
-  }
-];
+// Utiliser la même configuration Firebase que dans authService.js
+const firebaseConfig = {
+  apiKey: "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU",
+  authDomain: "cloud-project-bd903.firebaseapp.com",
+  projectId: "cloud-project-bd903",
+  storageBucket: "cloud-project-bd903.appspot.com",
+  messagingSenderId: "1000000000000",
+  appId: "cloud-project-id"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default function CryptoCoursScreen() {
-  const [cryptos, setCryptos] = useState(mockCryptoData);
+  const [cryptos, setCryptos] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [favorites, setFavorites] = useState([]);
+  const auth = getAuth();
+
+  const fetchLatestPrices = async () => {
+    try {
+      const cryptoMap = new Map();
+      
+      const coursRef = collection(db, 'cours-crypto');
+      const q = query(coursRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const previousPrices = new Map();
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const nomCrypto = data.nom_crypto.stringValue || data.nom_crypto;
+        const prix = parseFloat(data.prix.doubleValue || data.prix);
+        
+        if (!cryptoMap.has(nomCrypto)) {
+          cryptoMap.set(nomCrypto, {
+            crypto: nomCrypto,
+            prix: prix,
+            previousPrix: null,
+            isFavorite: favorites.includes(nomCrypto)
+          });
+        } else if (!previousPrices.has(nomCrypto)) {
+          previousPrices.set(nomCrypto, prix);
+        }
+      });
+
+      // Calculer les variations comme dans la version web
+      const cryptoList = Array.from(cryptoMap.values()).map(crypto => {
+        const previousPrix = previousPrices.get(crypto.crypto) || crypto.prix;
+        const variation = previousPrix ? ((crypto.prix - previousPrix) / previousPrix) * 100 : 0;
+        
+        // Calculer le pourcentage pour la barre de progression comme dans crypto.js
+        const percentage = Math.min(Math.abs(variation) * 2, 100); // Multiplier par 2 comme dans la version web
+        
+        return {
+          ...crypto,
+          variation: variation,
+          percentage: percentage,
+          cssClass: variation >= 0 ? 'bg-success' : 'bg-danger'
+        };
+      });
+
+      cryptoList.sort((a, b) => b.prix - a.prix);
+      setCryptos(cryptoList);
+      setRefreshing(false);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des prix:', error);
+      Alert.alert('Erreur', 'Impossible de récupérer les cours des cryptomonnaies');
+      setRefreshing(false);
+    }
+  };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simuler une mise à jour des données
-    setTimeout(() => {
-      const updatedCryptos = cryptos.map(crypto => ({
-        ...crypto,
-        prix: crypto.prix * (1 + (Math.random() * 0.1 - 0.05)),
-        variation: crypto.variation + (Math.random() * 2 - 1),
-      }));
-      setCryptos(updatedCryptos);
-      setRefreshing(false);
-    }, 1000);
-  }, [cryptos]);
+    fetchLatestPrices();
+  }, [favorites]);
 
-  const toggleFavorite = (cryptoName) => {
+  // Charger les favoris de l'utilisateur
+  const loadUserFavorites = async () => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const favorisRef = doc(db, 'crypto-favoris', userId);
+      const favorisDoc = await getDoc(favorisRef);
+
+      if (favorisDoc.exists()) {
+        const { cryptos: favorisList } = favorisDoc.data();
+        setFavorites(favorisList);
+      } else {
+        // Créer un document vide pour le nouvel utilisateur
+        await setDoc(favorisRef, { cryptos: [] });
+        setFavorites([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des favoris:', error);
+    }
+  };
+
+  // Mettre à jour les favoris dans Firebase
+  const updateUserFavorites = async (cryptoName, isFavorite) => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        Alert.alert('Erreur', 'Vous devez être connecté pour gérer vos favoris');
+        return;
+      }
+
+      const favorisRef = doc(db, 'crypto-favoris', userId);
+      
+      if (isFavorite) {
+        await setDoc(favorisRef, {
+          cryptos: arrayUnion(cryptoName)
+        }, { merge: true });
+      } else {
+        await setDoc(favorisRef, {
+          cryptos: arrayRemove(cryptoName)
+        }, { merge: true });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des favoris:', error);
+      Alert.alert('Erreur', 'Impossible de mettre à jour vos favoris');
+    }
+  };
+
+  const toggleFavorite = async (cryptoName) => {
     const updatedCryptos = cryptos.map(crypto => {
       if (crypto.crypto === cryptoName) {
         const newFavoriteStatus = !crypto.isFavorite;
+        // Mettre à jour Firebase
+        updateUserFavorites(cryptoName, newFavoriteStatus);
         
-        // Mettre à jour la liste des favoris
         if (newFavoriteStatus) {
-          console.log(`Ajout aux favoris: ${cryptoName}`);
-          setFavorites([...favorites, cryptoName]);
+          setFavorites(prev => [...prev, cryptoName]);
         } else {
-          console.log(`Retrait des favoris: ${cryptoName}`);
-          setFavorites(favorites.filter(fav => fav !== cryptoName));
+          setFavorites(prev => prev.filter(fav => fav !== cryptoName));
         }
-        
         return { ...crypto, isFavorite: newFavoriteStatus };
       }
       return crypto;
     });
-    
     setCryptos(updatedCryptos);
   };
 
+  // Charger les favoris au démarrage et quand l'utilisateur change
   useEffect(() => {
-    // Simuler des mises à jour en temps réel
-    const interval = setInterval(onRefresh, 10000);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        loadUserFavorites();
+      } else {
+        setFavorites([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    fetchLatestPrices();
+    const interval = setInterval(fetchLatestPrices, 10000);
     return () => clearInterval(interval);
-  }, [onRefresh]);
+  }, [favorites]);
 
   return (
     <ScrollView 
@@ -145,14 +225,14 @@ function CryptoCard({ crypto, onFavoritePress }) {
     <View style={styles.cryptoCard}>
       <View style={styles.cryptoHeader}>
         <Text style={styles.cryptoName}>{crypto.crypto}</Text>
-        <TouchableOpacity 
-          onPress={() => onFavoritePress(crypto.crypto)}
+        <TouchableOpacity
           style={styles.favoriteButton}
+          onPress={() => onFavoritePress(crypto.crypto)}
         >
-          <Ionicons 
-            name={crypto.isFavorite ? "star" : "star-outline"} 
-            size={24} 
-            color="#bfb699" 
+          <Ionicons
+            name={crypto.isFavorite ? 'star' : 'star-outline'}
+            size={24}
+            color="#bfb699"
           />
         </TouchableOpacity>
       </View>
@@ -161,7 +241,7 @@ function CryptoCard({ crypto, onFavoritePress }) {
         <Text style={styles.cryptoPrice}>{crypto.prix.toFixed(2)}€</Text>
         <Text style={[
           styles.cryptoVariation,
-          { color: crypto.variation >= 0 ? '#4CAF50' : '#f44336' }
+          { color: crypto.variation >= 0 ? '#4CAF50' : '#F44336' }
         ]}>
           {crypto.variation >= 0 ? '+' : ''}{crypto.variation.toFixed(2)}%
         </Text>
@@ -172,11 +252,16 @@ function CryptoCard({ crypto, onFavoritePress }) {
           <View 
             style={[
               styles.progressFill,
-              { width: `${crypto.percentage}%` }
+              { 
+                width: `${crypto.percentage}%`,
+                backgroundColor: crypto.variation >= 0 ? '#4CAF50' : '#F44336'
+              }
             ]} 
           />
         </View>
-        <Text style={styles.progressText}>{crypto.percentage.toFixed(1)}%</Text>
+        <Text style={styles.progressText}>
+          {crypto.percentage.toFixed(1)}%
+        </Text>
       </View>
     </View>
   );
@@ -265,7 +350,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#bfb699',
     borderRadius: 4,
   },
   progressText: {

@@ -9,12 +9,12 @@ import {
 
 // Votre configuration Firebase (à remplacer par vos propres valeurs)
 const firebaseConfig = {
-  apiKey: "AIzaSyAlYA9BQHhHBTzNpZimww4z3wMZE3SzQH4",
-  authDomain: "crypto-mobile.firebaseapp.com",
-  projectId: "test-5351e",
-  storageBucket: "crypto-mobile.appspot.com",
-  messagingSenderId: "votre-messaging-sender-id",
-  appId: "crypto-mobile-id"
+  apiKey: "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU",
+  authDomain: "cloud-project-bd903.firebaseapp.com",
+  projectId: "cloud-project-bd903",
+  storageBucket: "cloud-project-bd903.appspot.com",
+  messagingSenderId: "1000000000000",
+  appId: "cloud-project-id"
 };
 
 // Initialize Firebase
