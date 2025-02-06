@@ -14,6 +14,9 @@ namespace Cryptomonnaie.Controllers
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthenticationController> _logger;
+        
+        private const string FirebaseProjectId = "cloud-project-bd903";
+        private const string FirebaseApiKey = "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU";
 
         public AuthenticationController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<AuthenticationController> logger)
         {
@@ -118,11 +121,162 @@ namespace Cryptomonnaie.Controllers
             }
         }
 
+        private async Task CreateFirebaseWallet(string userId)
+        {
+            try
+            {
+                // Créer un document dans la collection "portefeuilles" de Firebase
+                var document = new
+                {
+                    fields = new
+                    {
+                        userId = new { stringValue = userId },
+                        solde = new { doubleValue = 0.0 },
+                        transactions = new { arrayValue = new { values = new object[] { } } },
+                        createdAt = new { timestampValue = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+                    }
+                };
+
+                var baseUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents";
+                var url = $"{baseUrl}/portefeuilles/{userId}?key={FirebaseApiKey}";
+                
+                var response = await _httpClient.PatchAsync(url, 
+                    new StringContent(
+                        JsonSerializer.Serialize(document),
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Échec de création du portefeuille Firebase pour l'utilisateur {UserId}. Erreur: {Error}", userId, error);
+                    throw new Exception("Échec de création du portefeuille Firebase");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la création du portefeuille Firebase");
+                throw;
+            }
+        }
+
+        [HttpPost("mobile-register")]
+        public async Task<IActionResult> MobileRegister([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                // 1. Créer d'abord le compte dans Firebase
+                var firebaseContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        email = request.Email,
+                        password = request.Password,
+                        returnSecureToken = true
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var firebaseResponse = await _httpClient.PostAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseApiKey}",
+                    firebaseContent
+                );
+
+                if (!firebaseResponse.IsSuccessStatusCode)
+                {
+                    var firebaseError = await firebaseResponse.Content.ReadAsStringAsync();
+                    _logger.LogError("Échec de création du compte Firebase: {Error}", firebaseError);
+                    return StatusCode((int)firebaseResponse.StatusCode, "Échec de création du compte Firebase");
+                }
+
+                // Extraire l'ID utilisateur Firebase de la réponse
+                var firebaseResponseContent = await firebaseResponse.Content.ReadAsStringAsync();
+                var firebaseData = JsonSerializer.Deserialize<JsonElement>(firebaseResponseContent);
+                var firebaseUserId = firebaseData.GetProperty("localId").GetString();
+
+                // Créer le portefeuille Firebase
+                await CreateFirebaseWallet(firebaseUserId);
+
+                // 2. Si Firebase réussit, procéder à l'inscription directe
+                var registerContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        username = request.Username,
+                        email = request.Email, 
+                        password = request.Password,
+                        isMobileRegistration = true
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var registerResponse = await _httpClient.PostAsync("http://node_app:3000/api/users/direct-register", registerContent);
+                
+                if (!registerResponse.IsSuccessStatusCode)
+                {
+                    var errorContent = await registerResponse.Content.ReadAsStringAsync();
+                    return StatusCode((int)registerResponse.StatusCode, errorContent);
+                }
+
+                var responseContent = await registerResponse.Content.ReadAsStringAsync();
+                var response = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                
+                // Créer le portefeuille
+                if (response.TryGetProperty("userId", out JsonElement userIdElement))
+                {
+                    var userId = userIdElement.GetInt32();
+                    var loggerFactory = HttpContext.RequestServices.GetService<ILoggerFactory>();
+                    if (loggerFactory != null)
+                    {
+                        var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
+                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger);
+                        await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
+                    }
+                }
+
+                return Ok(JsonSerializer.Deserialize<object>(responseContent));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur pendant le processus d'inscription mobile");
+                return StatusCode(500, "Une erreur est survenue pendant le processus d'inscription");
+            }
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             try
             {
+                // 1. Créer d'abord le compte dans Firebase
+                var firebaseContent = new StringContent(
+                    JsonSerializer.Serialize(new { 
+                        email = request.Email,
+                        password = request.Password,
+                        returnSecureToken = true
+                    }),
+                    Encoding.UTF8,
+                    "application/json");
+
+                var firebaseResponse = await _httpClient.PostAsync(
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseApiKey}",
+                    firebaseContent
+                );
+
+                if (!firebaseResponse.IsSuccessStatusCode)
+                {
+                    var firebaseError = await firebaseResponse.Content.ReadAsStringAsync();
+                    _logger.LogError("Échec de création du compte Firebase: {Error}", firebaseError);
+                    return StatusCode((int)firebaseResponse.StatusCode, "Échec de création du compte Firebase");
+                }
+
+                // Extraire l'ID utilisateur Firebase de la réponse
+                var firebaseResponseContent = await firebaseResponse.Content.ReadAsStringAsync();
+                var firebaseData = JsonSerializer.Deserialize<JsonElement>(firebaseResponseContent);
+                var firebaseUserId = firebaseData.GetProperty("localId").GetString();
+
+                // Créer le portefeuille Firebase
+                await CreateFirebaseWallet(firebaseUserId);
+
+                // 2. Si Firebase réussit, procéder à l'inscription dans la base locale
                 var registerContent = new StringContent(
                     JsonSerializer.Serialize(new { 
                         username = request.Username,
@@ -136,11 +290,12 @@ namespace Cryptomonnaie.Controllers
                 
                 if (!registerResponse.IsSuccessStatusCode)
                 {
+                    // En cas d'échec de l'inscription locale, on devrait idéalement supprimer le compte Firebase
+                    // Mais Firebase ne fournit pas d'API simple pour cela, l'utilisateur devra se reconnecter
                     var errorContent = await registerResponse.Content.ReadAsStringAsync();
                     return StatusCode((int)registerResponse.StatusCode, errorContent);
                 }
 
-                // Parse the response to get the PIN
                 var responseContent = await registerResponse.Content.ReadAsStringAsync();
                 var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 
@@ -151,8 +306,8 @@ namespace Cryptomonnaie.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during registration process");
-                return StatusCode(500, "An error occurred during the registration process");
+                _logger.LogError(ex, "Erreur pendant le processus d'inscription");
+                return StatusCode(500, "Une erreur est survenue pendant le processus d'inscription");
             }
         }
 
