@@ -43,7 +43,8 @@ export default function TransactionScreen() {
         montant: parseFloat(montant),
         dateCreation: new Date().toISOString(),
         statut: 'EN_ATTENTE',
-        email: user.email
+        email: user.email,
+        lu: false
       });
 
       Alert.alert(
