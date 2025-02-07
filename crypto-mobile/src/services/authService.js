@@ -1,13 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, 
+  initializeAuth,
+  getReactNativePersistence,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail
 } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Votre configuration Firebase (à remplacer par vos propres valeurs)
+// Votre configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU",
   authDomain: "cloud-project-bd903.firebaseapp.com",
@@ -19,7 +21,11 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+
+// Initialize Auth with persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
 
 export const authService = {
   register: async (userData) => {
@@ -30,10 +36,16 @@ export const authService = {
     try {
       const { email, password } = credentials;
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const token = await userCredential.user.getIdToken();
+      
+      // Sauvegarder le token dans AsyncStorage
+      await AsyncStorage.setItem('userToken', token);
+      await AsyncStorage.setItem('userEmail', email);
+      
       return {
         success: true,
         user: userCredential.user,
-        token: await userCredential.user.getIdToken()
+        token: token
       };
     } catch (error) {
       console.error('Erreur Firebase:', error);
@@ -74,6 +86,8 @@ export const authService = {
   logout: async () => {
     try {
       await signOut(auth);
+      // Supprimer les données de session
+      await AsyncStorage.multiRemove(['userToken', 'userEmail']);
       return { 
         success: true,
         message: 'Déconnexion réussie' 
@@ -90,5 +104,23 @@ export const authService = {
 
   onAuthStateChanged: (callback) => {
     return auth.onAuthStateChanged(callback);
+  },
+
+  checkSession: async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const user = auth.currentUser;
+      
+      if (token && user) {
+        return {
+          isAuthenticated: true,
+          user: user
+        };
+      }
+      return { isAuthenticated: false };
+    } catch (error) {
+      console.error('Erreur lors de la vérification de session:', error);
+      return { isAuthenticated: false };
+    }
   }
 }; 
