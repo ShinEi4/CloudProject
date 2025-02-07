@@ -12,7 +12,8 @@ import {
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import MonBouton from '../components/MonBouton';
-import { authService } from '../services/authService';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
@@ -20,6 +21,8 @@ export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [walletBalance, setWalletBalance] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
+  const auth = getAuth();
+  const db = getFirestore();
 
   useEffect(() => {
     loadUserData();
@@ -28,11 +31,33 @@ export default function ProfileScreen({ navigation }) {
 
   const loadUserData = async () => {
     try {
-      const userData = await authService.getCurrentUser();
-      setUser(userData);
-      // Charger le solde du portefeuille ici
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.log('Aucun utilisateur connecté');
+        return;
+      }
+
+      // Récupérer les données supplémentaires de l'utilisateur depuis Firestore
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      
+      setUser({
+        email: currentUser.email,
+        username: userDoc.exists() ? userDoc.data().username : currentUser.email.split('@')[0],
+        uid: currentUser.uid
+      });
+
+      // Récupérer le solde du portefeuille depuis Firestore
+      const walletDoc = await getDoc(doc(db, 'portefeuilles', currentUser.uid));
+      if (walletDoc.exists()) {
+        setWalletBalance(walletDoc.data().solde || 0);
+      }
+
     } catch (error) {
-      console.error('Erreur de chargement:', error);
+      console.error('Erreur lors du chargement des données:', error);
+      Alert.alert(
+        'Erreur',
+        'Impossible de charger les données utilisateur'
+      );
     }
   };
 
@@ -144,11 +169,15 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Nom d'utilisateur</Text>
-            <Text style={styles.value}>{user?.username || 'Chargement...'}</Text>
+            <Text style={styles.value}>
+              {user?.username || 'Chargement...'}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{user?.email || 'Chargement...'}</Text>
+            <Text style={styles.value}>
+              {user?.email || 'Chargement...'}
+            </Text>
           </View>
         </View>
       </View>
