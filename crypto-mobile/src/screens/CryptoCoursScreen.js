@@ -13,20 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { getFirestore, collection, query, orderBy, limit, getDocs, doc, setDoc, getDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import firebaseConfig from '../config/firebase-config';
+import app from '../firebase/firebase';
 
 const { width } = Dimensions.get('window');
 
-// Utiliser la même configuration Firebase que dans authService.js
-const firebaseConfig = {
-  apiKey: "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU",
-  authDomain: "cloud-project-bd903.firebaseapp.com",
-  projectId: "cloud-project-bd903",
-  storageBucket: "cloud-project-bd903.appspot.com",
-  messagingSenderId: "1000000000000",
-  appId: "cloud-project-id"
-};
-
-const app = initializeApp(firebaseConfig);
+// Supprimer la configuration en dur
 const db = getFirestore(app);
 
 export default function CryptoCoursScreen() {

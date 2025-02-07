@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import app from '../firebase/firebase';
 import { 
   initializeAuth,
   getReactNativePersistence,
@@ -8,19 +8,7 @@ import {
   sendPasswordResetEmail
 } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Votre configuration Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU",
-  authDomain: "cloud-project-bd903.firebaseapp.com",
-  projectId: "cloud-project-bd903",
-  storageBucket: "cloud-project-bd903.appspot.com",
-  messagingSenderId: "1000000000000",
-  appId: "cloud-project-id"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+import firebaseConfig from '../config/firebase-config';
 
 // Initialize Auth with persistence
 const auth = initializeAuth(app, {

@@ -4,6 +4,10 @@ using System.Text;
 using System.Text.Json;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Cryptomonnaie.Config;
 
 namespace Cryptomonnaie.Controllers
 {
@@ -14,15 +18,18 @@ namespace Cryptomonnaie.Controllers
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthenticationController> _logger;
-        
-        private const string FirebaseProjectId = "cloud-project-bd903";
-        private const string FirebaseApiKey = "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU";
+        private readonly FirebaseSettings _firebaseSettings;
 
-        public AuthenticationController(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<AuthenticationController> logger)
+        public AuthenticationController(
+            IHttpClientFactory httpClientFactory, 
+            IConfiguration configuration, 
+            ILogger<AuthenticationController> logger,
+            IOptions<FirebaseSettings> firebaseSettings)
         {
             _httpClient = httpClientFactory.CreateClient();
             _configuration = configuration;
             _logger = logger;
+            _firebaseSettings = firebaseSettings.Value;
         }
 
         [HttpPost("login")]
@@ -121,24 +128,23 @@ namespace Cryptomonnaie.Controllers
             }
         }
 
-        private async Task CreateFirebaseWallet(string userId)
+        private async Task CreateFirebaseWallet(string userId, string email)
         {
             try
             {
-                // Créer un document dans la collection "portefeuilles" de Firebase
                 var document = new
                 {
                     fields = new
                     {
                         userId = new { stringValue = userId },
-                        solde = new { doubleValue = 0.0 },
+                        email = new { stringValue = email },
+                        solde = new { doubleValue = 10.0 },
                         transactions = new { arrayValue = new { values = new object[] { } } },
                         createdAt = new { timestampValue = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
                     }
                 };
 
-                var baseUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents";
-                var url = $"{baseUrl}/portefeuilles/{userId}?key={FirebaseApiKey}";
+                var url = $"{_firebaseSettings.FirestoreUrl}/portefeuilles/{userId}?key={_firebaseSettings.ApiKey}";
                 
                 var response = await _httpClient.PatchAsync(url, 
                     new StringContent(
@@ -178,7 +184,7 @@ namespace Cryptomonnaie.Controllers
                     "application/json");
 
                 var firebaseResponse = await _httpClient.PostAsync(
-                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseApiKey}",
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={_firebaseSettings.ApiKey}",
                     firebaseContent
                 );
 
@@ -195,7 +201,7 @@ namespace Cryptomonnaie.Controllers
                 var firebaseUserId = firebaseData.GetProperty("localId").GetString();
 
                 // Créer le portefeuille Firebase
-                await CreateFirebaseWallet(firebaseUserId);
+                await CreateFirebaseWallet(firebaseUserId, request.Email);
 
                 // 2. Si Firebase réussit, procéder à l'inscription directe
                 var registerContent = new StringContent(
@@ -227,7 +233,12 @@ namespace Cryptomonnaie.Controllers
                     if (loggerFactory != null)
                     {
                         var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
-                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger, _httpClient);
+                        var portefeuilleController = new PortefeuilleController(
+                            _configuration, 
+                            portefeuilleLogger, 
+                            _httpClient,
+                            Options.Create(_firebaseSettings)
+                        );
                         await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
                     }
                 }
@@ -257,7 +268,7 @@ namespace Cryptomonnaie.Controllers
                     "application/json");
 
                 var firebaseResponse = await _httpClient.PostAsync(
-                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseApiKey}",
+                    $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={_firebaseSettings.ApiKey}",
                     firebaseContent
                 );
 
@@ -274,7 +285,7 @@ namespace Cryptomonnaie.Controllers
                 var firebaseUserId = firebaseData.GetProperty("localId").GetString();
 
                 // Créer le portefeuille Firebase
-                await CreateFirebaseWallet(firebaseUserId);
+                await CreateFirebaseWallet(firebaseUserId, request.Email);
 
                 // 2. Si Firebase réussit, procéder à l'inscription dans la base locale
                 var registerContent = new StringContent(
@@ -342,7 +353,12 @@ namespace Cryptomonnaie.Controllers
                     if (loggerFactory != null)
                     {
                         var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
-                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger, _httpClient);
+                        var portefeuilleController = new PortefeuilleController(
+                            _configuration, 
+                            portefeuilleLogger, 
+                            _httpClient,
+                            Options.Create(_firebaseSettings)
+                        );
                         await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
                         Console.WriteLine($"Wallet created successfully for user ID: {userId}");
                         _logger.LogInformation("Wallet created successfully for user ID: {UserId}", userId);

@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text;
+using Microsoft.Extensions.Options;
+using Cryptomonnaie.Config;
 
 namespace Cryptomonnaie.Services
 {
@@ -18,14 +21,18 @@ namespace Cryptomonnaie.Services
         private readonly Random _random = new Random();
         private readonly ILogger<CryptoService> _logger;
         private readonly HttpClient _httpClient;
-        private const string FirebaseProjectId = "cloud-project-bd903";
-        private const string FirebaseApiKey = "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU";
+        private readonly FirebaseSettings _firebaseSettings;
 
-        public CryptoService(IConfiguration configuration, ILogger<CryptoService> logger, HttpClient httpClient)
+        public CryptoService(
+            IConfiguration configuration, 
+            ILogger<CryptoService> logger, 
+            HttpClient httpClient,
+            IOptions<FirebaseSettings> firebaseSettings)
         {
             _connectionString = "Server=postgres;Port=5432;Database=identity_db;User Id=postgres;Password=postgres_password;";
             _logger = logger;
             _httpClient = httpClient;
+            _firebaseSettings = firebaseSettings.Value;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -70,7 +77,7 @@ namespace Cryptomonnaie.Services
                 }
 
                 // Envoyer les prix initiaux à Firebase
-                var baseUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents";
+                var baseUrl = $"{_firebaseSettings.FirestoreUrl}/cours-crypto?key={_firebaseSettings.ApiKey}";
 
                 foreach (var price in initialPrices)
                 {
@@ -86,9 +93,13 @@ namespace Cryptomonnaie.Services
                         }
                     };
 
-                    var response = await _httpClient.PostAsJsonAsync(
-                        $"{baseUrl}/cours-crypto?key={FirebaseApiKey}",
-                        document
+                    var response = await _httpClient.PostAsync(
+                        baseUrl,
+                        new StringContent(
+                            JsonSerializer.Serialize(document),
+                            Encoding.UTF8,
+                            "application/json"
+                        )
                     );
 
                     if (!response.IsSuccessStatusCode)
@@ -209,7 +220,7 @@ namespace Cryptomonnaie.Services
         {
             try
             {
-                var baseUrl = $"https://firestore.googleapis.com/v1/projects/{FirebaseProjectId}/databases/(default)/documents";
+                var baseUrl = $"{_firebaseSettings.FirestoreUrl}/cours-crypto?key={_firebaseSettings.ApiKey}";
                 
                 foreach (var price in prices)
                 {
@@ -225,9 +236,13 @@ namespace Cryptomonnaie.Services
                         }
                     };
 
-                    var response = await _httpClient.PostAsJsonAsync(
-                        $"{baseUrl}/cours-crypto?key={FirebaseApiKey}",
-                        document
+                    var response = await _httpClient.PostAsync(
+                        baseUrl,
+                        new StringContent(
+                            JsonSerializer.Serialize(document),
+                            Encoding.UTF8,
+                            "application/json"
+                        )
                     );
 
                     if (!response.IsSuccessStatusCode)
