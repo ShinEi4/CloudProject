@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, Animated, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import MonBouton from '../components/MonBouton';
 import { authService } from '../services/authService';
@@ -9,6 +9,21 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [glowAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    checkExistingSession();
+  }, []);
+
+  const checkExistingSession = async () => {
+    try {
+      const { isAuthenticated } = await authService.checkSession();
+      if (isAuthenticated) {
+        navigation.replace('MainApp');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification de session:', error);
+    }
+  };
 
   React.useEffect(() => {
     Animated.loop(
