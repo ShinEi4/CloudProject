@@ -56,3 +56,85 @@ Commandes utiles :
 
 - Pour run projet :
    npx expo start
+
+## TUTO build apk
+Executer dans le terminal de crypto-mobile:
+- eas login
+- npx eas build:configure :
+   . selectionner: All
+   . selectionner: Yes
+   . selectionner: Yes
+- npx eas build --profile preview --platform android
+
+   Structure de app.json:
+   {
+      "expo": {
+         "name": "Crypto Sync",
+         "slug": "crypto-mobile",
+         "version": "1.0.0",
+         "scheme": "cryptosync",
+         "orientation": "portrait",
+         "userInterfaceStyle": "dark",
+         "icon": "./assets/images/icon-foreground.png",
+         "splash": {
+            "resizeMode": "contain",
+            "backgroundColor": "#2a2d36"
+         },
+         "assetBundlePatterns": [
+            "**/*"
+         ],
+         "ios": {
+            "supportsTablet": true
+         },
+         "android": {
+            "adaptiveIcon": {
+            "backgroundColor": "#2a2d36"
+            },
+            "permissions": [
+            "android.permission.CAMERA",
+            "android.permission.RECORD_AUDIO",
+            "android.permission.CAMERA",
+            "android.permission.RECORD_AUDIO"
+            ],
+            "package": "com.anjely.cryptomobile"
+         },
+         "plugins": [
+            "expo-font",
+            [
+            "expo-camera",
+            {
+               "cameraPermission": "Permettez à $(PRODUCT_NAME) d'accéder à votre caméra."
+            }
+            ],
+            [
+            "expo-image-picker",
+            {
+               "photosPermission": "Permettez à $(PRODUCT_NAME) d'accéder à vos photos."
+            }
+            ],
+            [
+            "expo-splash-screen",
+            {
+               "image": "./assets/splashscreen_logo.png",
+               "resizeMode": "contain",
+               "backgroundColor": "#ffffff"
+            }
+            ]
+         ],
+         "newArchEnabled": true,
+         "extra": {
+            "eas": {
+            "projectId": "5c89097d-de23-401a-ae46-1a1f6faa86cc" 
+            (A changer par celui generer par eas build:configure)
+            }
+         },
+         "runtimeVersion": {
+            "policy": "appVersion"
+         },
+         "updates": {
+            "url": "https://u.expo.dev/5c89097d-de23-401a-ae46-1a1f6faa86cc"
+            (A changer par celui generer par eas build:configure)
+         }
+      }
+   }
+
