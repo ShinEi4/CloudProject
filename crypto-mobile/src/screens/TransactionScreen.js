@@ -11,27 +11,52 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MonBouton from '../components/MonBouton';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, collection, addDoc } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
 export default function TransactionScreen() {
   const [montant, setMontant] = useState('');
   const [type, setType] = useState('depot'); // 'depot' ou 'retrait'
+  const auth = getAuth();
+  const db = getFirestore();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!montant) {
       Alert.alert('Erreur', 'Veuillez entrer un montant');
       return;
     }
 
-    // Simulation de l'envoi
-    Alert.alert(
-      'Demande envoyée',
-      `Votre demande de ${type} de ${montant}€ a été envoyée avec succès.`,
-      [{ text: 'OK', onPress: () => {
-        setMontant('');
-      }}]
-    );
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert('Erreur', 'Vous devez être connecté');
+        return;
+      }
+
+      // Créer la demande dans Firebase
+      const demandeRef = collection(db, 'demandes');
+      await addDoc(demandeRef, {
+        userId: user.uid,
+        type: type === 'depot' ? 'DEPOSIT' : 'WITHDRAW',
+        montant: parseFloat(montant),
+        dateCreation: new Date().toISOString(),
+        statut: 'EN_ATTENTE',
+        email: user.email
+      });
+
+      Alert.alert(
+        'Demande envoyée',
+        `Votre demande de ${type} de ${montant}€ a été envoyée avec succès.`,
+        [{ text: 'OK', onPress: () => {
+          setMontant('');
+        }}]
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la demande:', error);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'envoi de la demande');
+    }
   };
 
   return (

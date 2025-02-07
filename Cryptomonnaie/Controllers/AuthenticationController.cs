@@ -227,7 +227,7 @@ namespace Cryptomonnaie.Controllers
                     if (loggerFactory != null)
                     {
                         var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
-                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger);
+                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger, _httpClient);
                         await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
                     }
                 }
@@ -342,7 +342,7 @@ namespace Cryptomonnaie.Controllers
                     if (loggerFactory != null)
                     {
                         var portefeuilleLogger = loggerFactory.CreateLogger<PortefeuilleController>();
-                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger);
+                        var portefeuilleController = new PortefeuilleController(_configuration, portefeuilleLogger, _httpClient);
                         await portefeuilleController.CreateWallet(new CreateWalletRequest { UserId = userId });
                         Console.WriteLine($"Wallet created successfully for user ID: {userId}");
                         _logger.LogInformation("Wallet created successfully for user ID: {UserId}", userId);

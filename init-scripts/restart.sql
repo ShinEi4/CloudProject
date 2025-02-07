@@ -154,8 +154,8 @@ INSERT INTO DureeSession (duree) VALUES ('01:00:00');
 
 
 -- Réinsérer les données de base
-INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) VALUES 
-('admin', 'admin@admin.com', '$2a$11$PxIC7Jz3tAhFGrHzuTa6/.G7RPxqoFGGqwKxEj5FtXwpvPqHwJXEK', true, true);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('admin', 'admin@example.com', '9bb2e1c2f40c5ca2d6903a7729de79b078adfb770a4b601b05152d3246d29e6c', true, true);
 
 INSERT INTO Crypto (nom_crypto) VALUES 
 ('SOLANA'),      -- ~100€
