@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   View, 
@@ -12,21 +12,49 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MonBouton from '../components/MonBouton';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc } from 'firebase/firestore';
+import app from '../firebase/firebase';
 
 const { width } = Dimensions.get('window');
+
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 export default function TransactionScreen() {
   const [montant, setMontant] = useState('');
   const [type, setType] = useState('depot'); // 'depot' ou 'retrait'
-  const auth = getAuth();
-  const db = getFirestore();
+  const [solde, setSolde] = useState(0);
+
+  // Charger le solde au démarrage et quand l'utilisateur change
+  useEffect(() => {
+    loadUserBalance();
+  }, []);
+
+  const loadUserBalance = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const walletRef = doc(db, 'portefeuilles', user.uid);
+      const walletSnap = await getDoc(walletRef);
+
+      if (walletSnap.exists()) {
+        const walletData = walletSnap.data();
+        setSolde(walletData.solde || 0);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du solde:', error);
+      Alert.alert('Erreur', 'Impossible de charger votre solde');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!montant) {
       Alert.alert('Erreur', 'Veuillez entrer un montant');
       return;
     }
+
+    const montantNumber = parseFloat(montant);
 
     try {
       const user = auth.currentUser;
@@ -35,12 +63,26 @@ export default function TransactionScreen() {
         return;
       }
 
+      // Vérifier le solde pour les retraits
+      if (type === 'retrait') {
+        // Recharger le solde pour avoir la valeur la plus récente
+        await loadUserBalance();
+        
+        if (montantNumber > solde) {
+          Alert.alert(
+            'Solde insuffisant',
+            `Votre solde actuel (${solde.toFixed(2)}€) est insuffisant pour ce retrait de ${montantNumber.toFixed(2)}€`
+          );
+          return;
+        }
+      }
+
       // Créer la demande dans Firebase
       const demandeRef = collection(db, 'demandes');
       await addDoc(demandeRef, {
         userId: user.uid,
         type: type === 'depot' ? 'DEPOSIT' : 'WITHDRAW',
-        montant: parseFloat(montant),
+        montant: montantNumber,
         dateCreation: new Date().toISOString(),
         statut: 'EN_ATTENTE',
         email: user.email,
@@ -52,6 +94,7 @@ export default function TransactionScreen() {
         `Votre demande de ${type} de ${montant}€ a été envoyée avec succès.`,
         [{ text: 'OK', onPress: () => {
           setMontant('');
+          loadUserBalance(); // Recharger le solde après la demande
         }}]
       );
     } catch (error) {
@@ -67,6 +110,11 @@ export default function TransactionScreen() {
       </View>
 
       <View style={styles.content}>
+        <View style={styles.balanceContainer}>
+          <Text style={styles.balanceLabel}>SOLDE ACTUEL</Text>
+          <Text style={styles.balanceValue}>{solde.toFixed(2)}€</Text>
+        </View>
+
         <View style={styles.typeSelector}>
           <TouchableOpacity 
             style={[
@@ -218,5 +266,24 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 20,
     backgroundColor: '#bfb699',
+  },
+  balanceContainer: {
+    backgroundColor: 'rgba(191, 182, 153, 0.1)',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    color: '#bfb699',
+    fontFamily: 'Orbitron',
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  balanceValue: {
+    color: '#fff',
+    fontFamily: 'Exo2',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 }); 

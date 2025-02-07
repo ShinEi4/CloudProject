@@ -14,6 +14,8 @@ DROP SEQUENCE IF EXISTS portefeuille_id_portefeuille_seq CASCADE;
 DROP SEQUENCE IF EXISTS transaction_crypto_id_transaction_seq CASCADE;
 DROP SEQUENCE IF EXISTS commission_id_commission_seq CASCADE;
 
+delete from connexion;
+delete from fond_transaction;
 -- Réexécuter le script de création des tables
 CREATE TABLE Utilisateur(
    id_utilisateur SERIAL,

@@ -1,4 +1,5 @@
 using Cryptomonnaie.Services;
+using Cryptomonnaie.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,9 @@ builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddControllersWithViews();
 builder.Services.AddHostedService<CryptoService>();
 builder.Services.AddHttpClient();
+
+// Charger la configuration Firebase
+builder.Services.Configure<FirebaseSettings>(builder.Configuration.GetSection("Firebase"));
 
 // Configurer CORS si nécessaire
 builder.Services.AddCors(options =>

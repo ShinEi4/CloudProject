@@ -5,8 +5,13 @@ import { useFonts } from 'expo-font';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import TabNavigator from './src/navigation/TabNavigator';
+import { initializeApp } from 'firebase/app';
+import firebaseConfig from './src/config/firebase-config';
 
 const Stack = createNativeStackNavigator();
+
+// Initialiser Firebase une seule fois au démarrage de l'app
+const app = initializeApp(firebaseConfig);
 
 export default function App() {
   const [fontsLoaded] = useFonts({

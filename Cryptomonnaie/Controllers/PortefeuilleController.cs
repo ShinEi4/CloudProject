@@ -3,6 +3,8 @@ using Npgsql;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
+using Microsoft.Extensions.Options;
+using Cryptomonnaie.Config;
 
 namespace Cryptomonnaie.Controllers
 {
@@ -13,15 +15,18 @@ namespace Cryptomonnaie.Controllers
         private readonly string _connectionString;
         private readonly ILogger<PortefeuilleController> _logger;
         private readonly HttpClient _httpClient;
-        
-        private const string _firebaseProjectId = "cloud-project-bd903";
-        private const string _firebaseApiKey = "AIzaSyBH8d8E09Pp4jPTsg18vDv1blm3ngtMgwU";
+        private readonly FirebaseSettings _firebaseSettings;
 
-        public PortefeuilleController(IConfiguration configuration, ILogger<PortefeuilleController> logger, HttpClient httpClient)
+        public PortefeuilleController(
+            IConfiguration configuration, 
+            ILogger<PortefeuilleController> logger, 
+            HttpClient httpClient,
+            IOptions<FirebaseSettings> firebaseSettings)
         {
-            _connectionString = "Server=postgres;Port=5432;Database=identity_db;User Id=postgres;Password=postgres_password;";
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
             _logger = logger;
             _httpClient = httpClient;
+            _firebaseSettings = firebaseSettings.Value;
         }
 
         public NpgsqlConnection GetConnection()
@@ -161,13 +166,11 @@ namespace Cryptomonnaie.Controllers
         }
 
         [HttpGet("demandes")]
-        public async Task<IActionResult> GetDemandes([FromQuery] string? type = null, [FromQuery] string? statut = null)
+        public async Task<IActionResult> GetDemandes([FromQuery] string? type = null)
         {
             try
             {
-                // 1. Récupérer et synchroniser les demandes de Firebase
-                var baseUrl = $"https://firestore.googleapis.com/v1/projects/{_firebaseProjectId}/databases/(default)/documents";
-                var url = $"{baseUrl}/demandes?key={_firebaseApiKey}";
+                var url = $"{_firebaseSettings.FirestoreUrl}/demandes?key={_firebaseSettings.ApiKey}";
                 
                 using var connection = new NpgsqlConnection(_connectionString);
                 await connection.OpenAsync();
@@ -281,10 +284,12 @@ namespace Cryptomonnaie.Controllers
 
                                             // Après l'insertion réussie dans PostgreSQL, mettre à jour lu=true dans Firebase
                                             var documentPath = doc.GetProperty("name").GetString();
-                                            // S'assurer que l'URL est absolue
-                                            var updateUrl = documentPath.StartsWith("http") 
-                                                ? $"{documentPath}?key={_firebaseApiKey}"
-                                                : $"https://firestore.googleapis.com/v1/{documentPath}?key={_firebaseApiKey}";
+                                            // Extraire uniquement le chemin relatif si c'est une URL complète
+                                            var relativePath = documentPath.Contains("/documents/") 
+                                                ? documentPath.Split("/documents/")[1]
+                                                : documentPath;
+
+                                            var updateUrl = $"{_firebaseSettings.FirestoreUrl}/{relativePath}?key={_firebaseSettings.ApiKey}";
 
                                             var updateData = new
                                             {
@@ -311,7 +316,9 @@ namespace Cryptomonnaie.Controllers
                                             if (!updateResponse.IsSuccessStatusCode)
                                             {
                                                 await transaction.RollbackAsync();
-                                                _logger.LogError("Échec de la mise à jour du statut 'lu' dans Firebase");
+                                                var errorContent = await updateResponse.Content.ReadAsStringAsync();
+                                                _logger.LogError("Échec de la mise à jour Firebase. Status: {Status}, Error: {Error}", 
+                                                    updateResponse.StatusCode, errorContent);
                                                 return StatusCode(500, new { message = "Erreur lors de la mise à jour du statut dans Firebase" });
                                             }
                                         }
@@ -443,8 +450,7 @@ namespace Cryptomonnaie.Controllers
                     }
 
                     // 2. Rechercher la demande dans Firebase
-                    var baseUrl = $"https://firestore.googleapis.com/v1/projects/{_firebaseProjectId}/databases/(default)/documents";
-                    var searchUrl = $"{baseUrl}/demandes?key={_firebaseApiKey}";
+                    var searchUrl = $"{_firebaseSettings.FirestoreUrl}/demandes?key={_firebaseSettings.ApiKey}";
                     
                     var firebaseResponse = await _httpClient.GetAsync(searchUrl);
                     if (firebaseResponse.IsSuccessStatusCode)
@@ -470,9 +476,12 @@ namespace Cryptomonnaie.Controllers
                                 {
                                     // Mettre à jour le statut dans Firebase
                                     var documentPath = doc.GetProperty("name").GetString();
-                                    var updateUrl = documentPath.StartsWith("http") 
-                                        ? $"{documentPath}?key={_firebaseApiKey}"
-                                        : $"https://firestore.googleapis.com/v1/{documentPath}?key={_firebaseApiKey}";
+                                    // Extraire uniquement le chemin relatif si c'est une URL complète
+                                    var relativePath = documentPath.Contains("/documents/") 
+                                        ? documentPath.Split("/documents/")[1]
+                                        : documentPath;
+
+                                    var updateUrl = $"{_firebaseSettings.FirestoreUrl}/{relativePath}?key={_firebaseSettings.ApiKey}";
 
                                     var updateData = new
                                     {
@@ -497,8 +506,10 @@ namespace Cryptomonnaie.Controllers
                                     var updateResponse = await _httpClient.PatchAsync(updateUrl, updateContent);
                                     if (!updateResponse.IsSuccessStatusCode)
                                     {
+                                        var errorContent = await updateResponse.Content.ReadAsStringAsync();
+                                        _logger.LogError("Échec de la mise à jour Firebase. Status: {Status}, Error: {Error}", 
+                                            updateResponse.StatusCode, errorContent);
                                         await transaction.RollbackAsync();
-                                        _logger.LogError("Échec de la mise à jour du statut 'lu' dans Firebase");
                                         return StatusCode(500, new { message = "Erreur lors de la mise à jour du statut dans Firebase" });
                                     }
                                     break;
@@ -554,6 +565,91 @@ namespace Cryptomonnaie.Controllers
                             _ => throw new InvalidOperationException($"Invalid transaction type: {type}")
                         });
                         await cmdBalance.ExecuteNonQueryAsync();
+
+                        // Après la mise à jour du solde dans Postgres, récupérer le nouveau solde et l'email
+                        var getNewBalanceQuery = @"
+                            SELECT p.solde, u.email
+                            FROM portefeuille p
+                            JOIN Utilisateur u ON p.id_utilisateur = u.id_utilisateur
+                            WHERE p.id_portefeuille = @portefeuilleId";
+
+                        using var cmdNewBalance = new NpgsqlCommand(getNewBalanceQuery, connection);
+                        cmdNewBalance.Parameters.AddWithValue("@portefeuilleId", portefeuilleId);
+                        using var balanceReader = await cmdNewBalance.ExecuteReaderAsync();
+
+                        if (await balanceReader.ReadAsync())
+                        {
+                            var newBalance = balanceReader.GetDecimal(0);
+                            var userEmail = balanceReader.GetString(1);
+
+                            // D'abord, chercher le document Firebase avec le même email
+                            var searchUrl2 = $"{_firebaseSettings.FirestoreUrl}/portefeuilles?key={_firebaseSettings.ApiKey}";
+                            var searchResponse = await _httpClient.GetAsync(searchUrl2);
+                            
+                            if (searchResponse.IsSuccessStatusCode)
+                            {
+                                var content = await searchResponse.Content.ReadAsStringAsync();
+                                var firebaseData = JsonSerializer.Deserialize<JsonElement>(content);
+                                string? firebaseDocumentId = null;
+
+                                if (firebaseData.TryGetProperty("documents", out JsonElement documents))
+                                {
+                                    foreach (var doc in documents.EnumerateArray())
+                                    {
+                                        var fields = doc.GetProperty("fields");
+                                        if (fields.TryGetProperty("email", out JsonElement emailField) && 
+                                            emailField.GetProperty("stringValue").GetString() == userEmail)
+                                        {
+                                            // Extraire l'ID du document depuis son nom
+                                            var documentPath = doc.GetProperty("name").GetString();
+                                            firebaseDocumentId = documentPath.Split("/").Last();
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (firebaseDocumentId != null)
+                                {
+                                    // Mettre à jour le solde dans Firebase avec l'ID trouvé
+                                    var walletUpdateUrl = $"{_firebaseSettings.FirestoreUrl}/portefeuilles/{firebaseDocumentId}?key={_firebaseSettings.ApiKey}";
+
+                                    var walletUpdateData = new
+                                    {
+                                        fields = new
+                                        {
+                                            userId = new { stringValue = firebaseDocumentId },
+                                            email = new { stringValue = userEmail },
+                                            solde = new { doubleValue = (double)newBalance },
+                                            transactions = new { arrayValue = new { values = new object[] { } } },
+                                            createdAt = new { timestampValue = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+                                        }
+                                    };
+
+                                    var walletUpdateContent = new StringContent(
+                                        JsonSerializer.Serialize(walletUpdateData),
+                                        Encoding.UTF8,
+                                        "application/json"
+                                    );
+
+                                    var walletUpdateResponse = await _httpClient.PatchAsync(walletUpdateUrl, walletUpdateContent);
+                                    
+                                    if (!walletUpdateResponse.IsSuccessStatusCode)
+                                    {
+                                        var errorContent = await walletUpdateResponse.Content.ReadAsStringAsync();
+                                        _logger.LogError("Échec de la mise à jour du solde Firebase. Status: {Status}, Error: {Error}", 
+                                            walletUpdateResponse.StatusCode, errorContent);
+                                        await transaction.RollbackAsync();
+                                        return StatusCode(500, new { message = "Erreur lors de la mise à jour du solde dans Firebase" });
+                                    }
+                                }
+                                else
+                                {
+                                    _logger.LogError("Aucun document Firebase trouvé pour l'email: {Email}", userEmail);
+                                    await transaction.RollbackAsync();
+                                    return StatusCode(500, new { message = "Portefeuille Firebase non trouvé" });
+                                }
+                            }
+                        }
                     }
 
                     await transaction.CommitAsync();
