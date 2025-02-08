@@ -13,7 +13,7 @@ import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import MonBouton from '../components/MonBouton';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +21,7 @@ export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [walletBalance, setWalletBalance] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
+  const [userBalance, setUserBalance] = useState(0);
   const auth = getAuth();
   const db = getFirestore();
 
@@ -124,6 +125,43 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const loadUserBalance = async (email) => {
+    try {
+      console.log('Chargement du solde pour:', email);
+      
+      // Rechercher le portefeuille de l'utilisateur
+      const portefeuilleQuery = query(
+        collection(db, 'portefeuilles'),
+        where('email', '==', email)
+      );
+      
+      const querySnapshot = await getDocs(portefeuilleQuery);
+      
+      if (!querySnapshot.empty) {
+        const portefeuilleData = querySnapshot.docs[0].data();
+        const solde = portefeuilleData.solde || 0;
+        console.log('Solde trouvé:', solde);
+        setUserBalance(solde);
+        return solde;
+      } else {
+        console.log('Aucun portefeuille trouvé pour:', email);
+        setUserBalance(0);
+        return 0;
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du solde:', error);
+      setUserBalance(0);
+      return 0;
+    }
+  };
+
+  // Charger le solde quand l'email change
+  useEffect(() => {
+    if (user?.email) {
+      loadUserBalance(user.email);
+    }
+  }, [user?.email]);
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -148,6 +186,11 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>CRÉDITS</Text>
           <Text style={styles.balanceAmount}>{walletBalance} €</Text>
+        </View>
+
+        <View style={styles.balanceContainer}>
+          <Text style={styles.balanceLabel}>Solde disponible</Text>
+          <Text style={styles.balanceValue}>{userBalance.toFixed(2)}€</Text>
         </View>
 
         <View style={styles.actionButtons}>
@@ -288,5 +331,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Exo2',
+  },
+  balanceContainer: {
+    backgroundColor: 'rgba(191, 182, 153, 0.1)',
+    borderRadius: 15,
+    padding: 20,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  balanceValue: {
+    color: '#fff',
+    fontFamily: 'Orbitron',
+    fontSize: 24,
   },
 }); 
