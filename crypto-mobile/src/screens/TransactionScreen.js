@@ -14,6 +14,7 @@ import MonBouton from '../components/MonBouton';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import app from '../firebase/firebase';
+import useNotifications from '../hooks/useNotifications';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ export default function TransactionScreen() {
   const [montant, setMontant] = useState('');
   const [type, setType] = useState('depot'); // 'depot' ou 'retrait'
   const [solde, setSolde] = useState(0);
+  const { sendNotification } = useNotifications();
 
   // Charger le solde au démarrage et quand l'utilisateur change
   useEffect(() => {
@@ -63,21 +65,17 @@ export default function TransactionScreen() {
         return;
       }
 
-      // Vérifier le solde pour les retraits
       if (type === 'retrait') {
-        // Recharger le solde pour avoir la valeur la plus récente
         await loadUserBalance();
-        
         if (montantNumber > solde) {
-          Alert.alert(
+          await sendNotification(
             'Solde insuffisant',
-            `Votre solde actuel (${solde.toFixed(2)}€) est insuffisant pour ce retrait de ${montantNumber.toFixed(2)}€`
+            `Votre solde actuel (${solde.toFixed(2)}€) est insuffisant pour ce retrait`
           );
           return;
         }
       }
 
-      // Créer la demande dans Firebase
       const demandeRef = collection(db, 'demandes');
       await addDoc(demandeRef, {
         userId: user.uid,
@@ -89,17 +87,20 @@ export default function TransactionScreen() {
         lu: false
       });
 
-      Alert.alert(
+      await sendNotification(
         'Demande envoyée',
-        `Votre demande de ${type} de ${montant}€ a été envoyée avec succès.`,
-        [{ text: 'OK', onPress: () => {
-          setMontant('');
-          loadUserBalance(); // Recharger le solde après la demande
-        }}]
+        `Votre demande de ${type} de ${montant}€ a été envoyée avec succès`
       );
+      
+      setMontant('');
+      loadUserBalance();
+
     } catch (error) {
       console.error('Erreur lors de l\'envoi de la demande:', error);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'envoi de la demande');
+      await sendNotification(
+        'Erreur',
+        'Une erreur est survenue lors de l\'envoi de la demande'
+      );
     }
   };
 

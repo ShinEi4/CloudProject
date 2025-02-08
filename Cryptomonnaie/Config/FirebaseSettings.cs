@@ -6,4 +6,4 @@ namespace Cryptomonnaie.Config
         public string ApiKey { get; set; }
         public string FirestoreUrl { get; set; }
     }
-} 
+}
