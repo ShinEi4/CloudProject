@@ -57,13 +57,13 @@ namespace Cryptomonnaie.Controllers
                     WHERE p.id_utilisateur = @userId";
 
                 var portfolio = new List<object>();
-                
+
                 // Utiliser using pour assurer la fermeture du reader
                 using (var cmd = new NpgsqlCommand(query, connection))
                 {
                     cmd.Parameters.AddWithValue("@userId", userId);
                     using var reader = await cmd.ExecuteReaderAsync();
-                    
+
                     while (await reader.ReadAsync())
                     {
                         portfolio.Add(new
@@ -163,9 +163,11 @@ namespace Cryptomonnaie.Controllers
 
                     if (currentBalance < totalCost)
                     {
-                        return BadRequest(new { 
+                        return BadRequest(new
+                        {
                             message = "Solde insuffisant",
-                            details = new {
+                            details = new
+                            {
                                 solde_actuel = currentBalance,
                                 cout_achat = totalCost,
                                 manquant = totalCost - currentBalance
@@ -229,7 +231,8 @@ namespace Cryptomonnaie.Controllers
 
                     await SaveTransactionToFirebase("BUY", userEmail, cryptoName, request.Quantite, price, totalCost);
 
-                    return Ok(new { 
+                    return Ok(new
+                    {
                         message = "Achat réussi",
                         cout = totalCost,
                         ancien_solde = currentBalance,
@@ -240,7 +243,8 @@ namespace Cryptomonnaie.Controllers
                 {
                     await transaction.RollbackAsync();
                     _logger.LogError(ex, "Erreur détaillée lors de l'achat: {Message}", ex.Message);
-                    return StatusCode(500, new { 
+                    return StatusCode(500, new
+                    {
                         message = "Erreur lors de l'achat",
                         details = ex.Message,
                         stackTrace = ex.StackTrace // En développement uniquement
@@ -250,7 +254,8 @@ namespace Cryptomonnaie.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors du traitement de l'achat: {Message}", ex.Message);
-                return StatusCode(500, new { 
+                return StatusCode(500, new
+                {
                     message = "Erreur lors du traitement de l'achat",
                     details = ex.Message
                 });
@@ -335,9 +340,11 @@ namespace Cryptomonnaie.Controllers
                     // 2. Vérifier si l'utilisateur possède la crypto
                     if (portfolioCryptoId == 0)
                     {
-                        return BadRequest(new { 
+                        return BadRequest(new
+                        {
                             message = "Vous ne possédez pas cette cryptomonnaie",
-                            details = new {
+                            details = new
+                            {
                                 crypto_id = request.CryptoId,
                                 solde_actuel = 0
                             }
@@ -349,9 +356,11 @@ namespace Cryptomonnaie.Controllers
                     // 3. Vérifier si l'utilisateur a assez de crypto
                     if (cryptoBalance < request.Quantite)
                     {
-                        return BadRequest(new { 
+                        return BadRequest(new
+                        {
                             message = "Quantité insuffisante de crypto",
-                            details = new {
+                            details = new
+                            {
                                 solde_actuel_crypto = cryptoBalance,
                                 quantite_demandee = request.Quantite,
                                 manquant = request.Quantite - cryptoBalance
@@ -438,7 +447,8 @@ namespace Cryptomonnaie.Controllers
                         return StatusCode(500, new { message = "Erreur lors de la mise à jour du solde" });
                     }
 
-                    return Ok(new { 
+                    return Ok(new
+                    {
                         message = "Vente réussie",
                         cout = totalAmount,
                         ancien_solde = currentBalance,
@@ -451,7 +461,8 @@ namespace Cryptomonnaie.Controllers
                 {
                     await transaction.RollbackAsync();
                     _logger.LogError(ex, "Erreur détaillée lors de la vente: {Message}", ex.Message);
-                    return StatusCode(500, new { 
+                    return StatusCode(500, new
+                    {
                         message = "Erreur lors de la vente",
                         details = ex.Message,
                         stackTrace = ex.StackTrace
@@ -461,7 +472,8 @@ namespace Cryptomonnaie.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erreur lors du traitement de la vente: {Message}", ex.Message);
-                return StatusCode(500, new { 
+                return StatusCode(500, new
+                {
                     message = "Erreur lors du traitement de la vente",
                     details = ex.Message
                 });
@@ -473,7 +485,7 @@ namespace Cryptomonnaie.Controllers
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                
+
                 var collection = type == "BUY" ? "achatCrypto" : "venteCrypto";
                 var url = $"{_firebaseSettings.FirestoreUrl}/{collection}?key={_firebaseSettings.ApiKey}";
 
@@ -497,12 +509,25 @@ namespace Cryptomonnaie.Controllers
                 );
 
                 var response = await _httpClient.PostAsync(url, content, cts.Token);
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("Échec de l'enregistrement dans Firebase. Status: {Status}, Response: {Response}", 
-                        response.StatusCode, 
+                    _logger.LogError("Échec de l'enregistrement dans Firebase. Status: {Status}, Response: {Response}",
+                        response.StatusCode,
                         await response.Content.ReadAsStringAsync());
+                }
+                else
+                {
+                    // Envoyer une notification aux utilisateurs qui ont cette crypto en favoris
+                    try
+                    {
+                        await NotifyCryptoFavoris(cryptoName, type);
+                        _logger.LogInformation("Notifications envoyées pour la transaction de {Type} sur {CryptoName}", type, cryptoName);
+                    }
+                    catch (Exception notifEx)
+                    {
+                        _logger.LogError(notifEx, "Erreur lors de l'envoi des notifications pour {Type} sur {CryptoName}", type, cryptoName);
+                    }
                 }
             }
             catch (Exception ex)
@@ -520,7 +545,7 @@ namespace Cryptomonnaie.Controllers
                 // D'abord, chercher le document Firebase avec le même email
                 var searchUrl = $"{_firebaseSettings.FirestoreUrl}/portefeuilles?key={_firebaseSettings.ApiKey}";
                 var searchResponse = await _httpClient.GetAsync(searchUrl);
-                
+
                 if (searchResponse.IsSuccessStatusCode)
                 {
                     var content = await searchResponse.Content.ReadAsStringAsync();
@@ -532,7 +557,7 @@ namespace Cryptomonnaie.Controllers
                         foreach (var doc in documents.EnumerateArray())
                         {
                             var fields = doc.GetProperty("fields");
-                            if (fields.TryGetProperty("email", out JsonElement emailField) && 
+                            if (fields.TryGetProperty("email", out JsonElement emailField) &&
                                 emailField.GetProperty("stringValue").GetString() == userEmail)
                             {
                                 // Extraire l'ID du document depuis son nom
@@ -567,16 +592,16 @@ namespace Cryptomonnaie.Controllers
                         );
 
                         var walletUpdateResponse = await _httpClient.PatchAsync(walletUpdateUrl, walletUpdateContent);
-                        
+
                         if (!walletUpdateResponse.IsSuccessStatusCode)
                         {
                             var errorContent = await walletUpdateResponse.Content.ReadAsStringAsync();
-                            _logger.LogError("Échec de la mise à jour du solde Firebase. Status: {Status}, Error: {Error}", 
+                            _logger.LogError("Échec de la mise à jour du solde Firebase. Status: {Status}, Error: {Error}",
                                 walletUpdateResponse.StatusCode, errorContent);
                         }
                         else
                         {
-                            _logger.LogInformation("Mise à jour Firebase réussie pour {Email}, nouveau solde: {Balance}", 
+                            _logger.LogInformation("Mise à jour Firebase réussie pour {Email}, nouveau solde: {Balance}",
                                 userEmail, newBalance);
                         }
                     }
@@ -595,6 +620,174 @@ namespace Cryptomonnaie.Controllers
                 _logger.LogError(ex, "Erreur lors de la mise à jour du solde Firebase pour {Email}", userEmail);
             }
         }
+
+        [HttpPost("notify-crypto-favoris/{cryptoName}/{type}")]
+        public async Task<IActionResult> NotifyCryptoFavoris(string cryptoName, string type)
+        {
+            try
+            {
+                // 1. Récupérer tous les IDs des documents qui ont cette crypto en favori
+                var documentIds = await GetUserIdsWithCryptoFavoris(cryptoName);
+                var notificationResults = new List<NotificationResult>();
+
+                var operationType = type == "BUY" ? "achat" : "vente";
+
+                foreach (var userId in documentIds)
+                {
+                    try
+                    {
+                        // 2. Récupérer le FCM token pour chaque utilisateur
+                        var fcmToken = await GetFcmTokenForUser(userId);
+
+                        if (string.IsNullOrEmpty(fcmToken))
+                        {
+                            notificationResults.Add(new NotificationResult
+                            {
+                                UserId = userId,
+                                Success = false,
+                                Message = "FCM Token non trouvé"
+                            });
+                            continue;
+                        }
+
+                        // 3. Créer et envoyer la notification
+                        var expoPushMessage = new
+                        {
+                            to = fcmToken,
+                            sound = "default",
+                            title = $"FAVORIS {cryptoName}",
+                            body = $"Une opération de {operationType} a été effectuée sur votre cryptomonnaie favoris {cryptoName}",
+                            data = new
+                            {
+                                cryptoName = cryptoName,
+                                type = "crypto_update",
+                                operationType = type,
+                                additionalData = new { }
+                            }
+                        };
+
+                        var pushJson = JsonSerializer.Serialize(expoPushMessage);
+                        var pushRequest = new HttpRequestMessage(HttpMethod.Post, "https://exp.host/--/api/v2/push/send");
+
+                        pushRequest.Headers.Add("Accept", "application/json");
+                        pushRequest.Headers.Add("Accept-encoding", "gzip, deflate");
+
+                        pushRequest.Content = new StringContent(
+                            pushJson,
+                            Encoding.UTF8,
+                            "application/json"
+                        );
+
+                        var pushResponse = await _httpClient.SendAsync(pushRequest);
+
+                        notificationResults.Add(new NotificationResult
+                        {
+                            UserId = userId,
+                            Success = pushResponse.IsSuccessStatusCode,
+                            Message = pushResponse.IsSuccessStatusCode ? "Notification envoyée" : "Échec de l'envoi"
+                        });
+
+                        if (!pushResponse.IsSuccessStatusCode)
+                        {
+                            var errorContent = await pushResponse.Content.ReadAsStringAsync();
+                            _logger.LogError("Échec de l'envoi de notification pour {UserId}: {Error}",
+                                userId, errorContent);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Erreur lors de l'envoi de notification pour {UserId}", userId);
+                        notificationResults.Add(new NotificationResult
+                        {
+                            UserId = userId,
+                            Success = false,
+                            Message = "Erreur: " + ex.Message
+                        });
+                    }
+                }
+
+                return Ok(new
+                {
+                    message = "Processus de notification terminé",
+                    results = notificationResults
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors du processus de notification pour {CryptoName}", cryptoName);
+                return StatusCode(500, new { message = "Erreur lors de l'envoi des notifications" });
+            }
+        }
+
+        private async Task<List<string>> GetUserIdsWithCryptoFavoris(string cryptoName)
+        {
+            var url = $"{_firebaseSettings.FirestoreUrl}/crypto-favoris?key={_firebaseSettings.ApiKey}";
+            var response = await _httpClient.GetAsync(url);
+            var documentIds = new List<string>();
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var firebaseData = JsonSerializer.Deserialize<JsonElement>(content);
+
+                if (firebaseData.TryGetProperty("documents", out JsonElement documents))
+                {
+                    foreach (var doc in documents.EnumerateArray())
+                    {
+                        if (doc.TryGetProperty("fields", out JsonElement fields) &&
+                            fields.TryGetProperty("cryptos", out JsonElement cryptos) &&
+                            cryptos.TryGetProperty("arrayValue", out JsonElement arrayValue) &&
+                            arrayValue.TryGetProperty("values", out JsonElement values))
+                        {
+                            foreach (var value in values.EnumerateArray())
+                            {
+                                if (value.TryGetProperty("stringValue", out JsonElement stringValue) &&
+                                    stringValue.GetString()?.Equals(cryptoName, StringComparison.OrdinalIgnoreCase) == true)
+                                {
+                                    var documentPath = doc.GetProperty("name").GetString();
+                                    var userId = documentPath?.Split("/").Last();
+                                    if (!string.IsNullOrEmpty(userId))
+                                    {
+                                        documentIds.Add(userId);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return documentIds;
+        }
+
+        private async Task<string> GetFcmTokenForUser(string userId)
+        {
+            var url = $"{_firebaseSettings.FirestoreUrl}/fcmToken?key={_firebaseSettings.ApiKey}";
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var firebaseData = JsonSerializer.Deserialize<JsonElement>(content);
+
+                if (firebaseData.TryGetProperty("documents", out JsonElement documents))
+                {
+                    foreach (var doc in documents.EnumerateArray())
+                    {
+                        if (doc.TryGetProperty("fields", out JsonElement fields) &&
+                            fields.TryGetProperty("uid", out JsonElement uidField) &&
+                            uidField.GetProperty("stringValue").GetString() == userId &&
+                            fields.TryGetProperty("fcmToken", out JsonElement tokenField))
+                        {
+                            return tokenField.GetProperty("stringValue").GetString();
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 
     public class CryptoTransactionRequest
@@ -604,4 +797,17 @@ namespace Cryptomonnaie.Controllers
         [Range(0.000001, double.MaxValue, ErrorMessage = "La quantité doit être supérieure à 0")]
         public decimal Quantite { get; set; }
     }
-} 
+
+    public class NotificationMessage
+    {
+        public string Content { get; set; }
+        public object AdditionalData { get; set; }
+    }
+
+    public class NotificationResult
+    {
+        public string UserId { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; set; }
+    }
+}
