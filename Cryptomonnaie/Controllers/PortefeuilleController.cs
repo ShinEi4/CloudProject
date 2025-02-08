@@ -18,8 +18,8 @@ namespace Cryptomonnaie.Controllers
         private readonly FirebaseSettings _firebaseSettings;
 
         public PortefeuilleController(
-            IConfiguration configuration, 
-            ILogger<PortefeuilleController> logger, 
+            IConfiguration configuration,
+            ILogger<PortefeuilleController> logger,
             HttpClient httpClient,
             IOptions<FirebaseSettings> firebaseSettings)
         {
@@ -51,15 +51,16 @@ namespace Cryptomonnaie.Controllers
                 command.Parameters.AddWithValue("@userId", userId);
 
                 using var reader = await command.ExecuteReaderAsync();
-                
+
                 if (await reader.ReadAsync())
                 {
-                    return Ok(new { 
+                    return Ok(new
+                    {
                         id_portefeuille = reader.GetInt32(0),
                         solde = reader.GetDecimal(1)
                     });
                 }
-                
+
                 return NotFound(new { message = "Wallet not found" });
             }
             catch (Exception ex)
@@ -140,7 +141,7 @@ namespace Cryptomonnaie.Controllers
                 balanceCommand.Parameters.AddWithValue("@walletId", walletId);
 
                 var currentBalance = (decimal)await balanceCommand.ExecuteScalarAsync();
-                
+
                 if (currentBalance < request.Amount)
                 {
                     return BadRequest(new { message = "Insufficient funds" });
@@ -171,10 +172,10 @@ namespace Cryptomonnaie.Controllers
             try
             {
                 var url = $"{_firebaseSettings.FirestoreUrl}/demandes?key={_firebaseSettings.ApiKey}";
-                
+
                 using var connection = new NpgsqlConnection(_connectionString);
                 await connection.OpenAsync();
-                
+
                 try
                 {
                     var firebaseResponse = await _httpClient.GetAsync(url);
@@ -214,10 +215,10 @@ namespace Cryptomonnaie.Controllers
                                 if (statutFb == "EN_ATTENTE" && !lu)
                                 {
                                     // Vérifier si les données sont valides avant l'insertion
-                                    try 
+                                    try
                                     {
                                         var email = fields.GetProperty("email").GetProperty("stringValue").GetString();
-                                        
+
                                         // Gérer à la fois les valeurs entières et décimales pour le montant
                                         var montantElement = fields.GetProperty("montant");
                                         double montant;
@@ -233,7 +234,7 @@ namespace Cryptomonnaie.Controllers
                                         {
                                             throw new Exception("Format de montant invalide");
                                         }
-                                        
+
                                         // Conversion de la date ISO 8601 en DateTime UTC
                                         var dateString = fields.GetProperty("dateCreation").GetProperty("stringValue").GetString();
                                         var dateCreation = DateTime.Parse(dateString, null, System.Globalization.DateTimeStyles.RoundtripKind);
@@ -285,7 +286,7 @@ namespace Cryptomonnaie.Controllers
                                             // Après l'insertion réussie dans PostgreSQL, mettre à jour lu=true dans Firebase
                                             var documentPath = doc.GetProperty("name").GetString();
                                             // Extraire uniquement le chemin relatif si c'est une URL complète
-                                            var relativePath = documentPath.Contains("/documents/") 
+                                            var relativePath = documentPath.Contains("/documents/")
                                                 ? documentPath.Split("/documents/")[1]
                                                 : documentPath;
 
@@ -317,7 +318,7 @@ namespace Cryptomonnaie.Controllers
                                             {
                                                 await transaction.RollbackAsync();
                                                 var errorContent = await updateResponse.Content.ReadAsStringAsync();
-                                                _logger.LogError("Échec de la mise à jour Firebase. Status: {Status}, Error: {Error}", 
+                                                _logger.LogError("Échec de la mise à jour Firebase. Status: {Status}, Error: {Error}",
                                                     updateResponse.StatusCode, errorContent);
                                                 return StatusCode(500, new { message = "Erreur lors de la mise à jour du statut dans Firebase" });
                                             }
@@ -326,7 +327,7 @@ namespace Cryptomonnaie.Controllers
                                     catch (Exception ex)
                                     {
                                         await transaction.RollbackAsync();
-                                        _logger.LogError(ex, "Erreur lors du traitement de la demande Firebase. Données: {Data}", 
+                                        _logger.LogError(ex, "Erreur lors du traitement de la demande Firebase. Données: {Data}",
                                             JsonSerializer.Serialize(fields));
                                         return StatusCode(500, new { message = "Erreur lors du traitement des données de la demande" });
                                     }
@@ -352,7 +353,7 @@ namespace Cryptomonnaie.Controllers
                         parameters.Add(new NpgsqlParameter("@type", type));
                     }
 
-                    var whereClause = whereConditions.Count > 0 
+                    var whereClause = whereConditions.Count > 0
                         ? "WHERE " + string.Join(" AND ", whereConditions)
                         : "";
 
@@ -449,13 +450,14 @@ namespace Cryptomonnaie.Controllers
                         return BadRequest(new { message = "Transaction already processed" });
                     }
 
-                    // 2. Rechercher la demande dans Firebase
-                    var searchUrl = $"{_firebaseSettings.FirestoreUrl}/demandes?key={_firebaseSettings.ApiKey}";
-                    
-                    var firebaseResponse = await _httpClient.GetAsync(searchUrl);
-                    if (firebaseResponse.IsSuccessStatusCode)
+                    // Récupérer le FCM token depuis Firebase
+                    var searchUrl = $"{_firebaseSettings.FirestoreUrl}/fcmToken?key={_firebaseSettings.ApiKey}";
+                    var searchResponse = await _httpClient.GetAsync(searchUrl);
+
+                    string fcmToken = null;
+                    if (searchResponse.IsSuccessStatusCode)
                     {
-                        var content = await firebaseResponse.Content.ReadAsStringAsync();
+                        var content = await searchResponse.Content.ReadAsStringAsync();
                         var firebaseData = JsonSerializer.Deserialize<JsonElement>(content);
 
                         if (firebaseData.TryGetProperty("documents", out JsonElement documents))
@@ -463,58 +465,70 @@ namespace Cryptomonnaie.Controllers
                             foreach (var doc in documents.EnumerateArray())
                             {
                                 var fields = doc.GetProperty("fields");
-                                var fbEmail = fields.GetProperty("email").GetProperty("stringValue").GetString();
-                                var fbType = fields.GetProperty("type").GetProperty("stringValue").GetString();
-                                
-                                        // Conversion de la date ISO 8601 en DateTime UTC
-                                var dateStringFb = fields.GetProperty("dateCreation").GetProperty("stringValue").GetString();
-                                var fbDate = DateTime.Parse(dateStringFb, null, System.Globalization.DateTimeStyles.RoundtripKind);
-                                
-                                // Vérifier si c'est la même demande
-                                if (fbEmail == email && fbType == type && 
-                                    Math.Abs((fbDate - dateTransaction).TotalSeconds) < 60) // Tolérance d'une minute
+                                if (fields.TryGetProperty("email", out JsonElement emailField) &&
+                                    emailField.GetProperty("stringValue").GetString() == email)
                                 {
-                                    // Mettre à jour le statut dans Firebase
-                                    var documentPath = doc.GetProperty("name").GetString();
-                                    // Extraire uniquement le chemin relatif si c'est une URL complète
-                                    var relativePath = documentPath.Contains("/documents/") 
-                                        ? documentPath.Split("/documents/")[1]
-                                        : documentPath;
-
-                                    var updateUrl = $"{_firebaseSettings.FirestoreUrl}/{relativePath}?key={_firebaseSettings.ApiKey}";
-
-                                    var updateData = new
+                                    if (fields.TryGetProperty("fcmToken", out JsonElement tokenField))
                                     {
-                                        fields = new
-                                        {
-                                            email = new { stringValue = email },
-                                            type = new { stringValue = type },
-                                            montant = new { doubleValue = (double)montant },
-                                            dateCreation = new { stringValue = dateTransaction.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") },
-                                            statut = new { stringValue = request.Decision == "approved" ? "VALIDEE" : "REFUSEE" },
-                                            lu = new { booleanValue = true }
-                                        }
-                                    };
-
-                                    var updateContent = new StringContent(
-                                        JsonSerializer.Serialize(updateData),
-                                        Encoding.UTF8,
-                                        "application/json"
-                                    );
-
-                                    _logger.LogInformation("Mise à jour Firebase URL: {Url}", updateUrl);
-                                    var updateResponse = await _httpClient.PatchAsync(updateUrl, updateContent);
-                                    if (!updateResponse.IsSuccessStatusCode)
-                                    {
-                                        var errorContent = await updateResponse.Content.ReadAsStringAsync();
-                                        _logger.LogError("Échec de la mise à jour Firebase. Status: {Status}, Error: {Error}", 
-                                            updateResponse.StatusCode, errorContent);
-                                        await transaction.RollbackAsync();
-                                        return StatusCode(500, new { message = "Erreur lors de la mise à jour du statut dans Firebase" });
+                                        fcmToken = tokenField.GetProperty("stringValue").GetString();
+                                        break;
                                     }
-                                    break;
                                 }
                             }
+                        }
+                    }
+
+                    // Si on a un FCM token, envoyer la notification
+                    if (!string.IsNullOrEmpty(fcmToken))
+                    {
+                        try
+                        {
+                            var expoPushMessage = new
+                            {
+                                to = fcmToken,
+                                sound = "default",
+                                title = $"{(type == "WITHDRAW" ? "Retrait" : "Dépôt")} {(request.Decision == "approved" ? "approuvé" : "refusé")}",
+                                body = $"Votre demande de {(type == "WITHDRAW" ? "retrait" : "dépôt")} de {montant}€ a été {(request.Decision == "approved" ? "approuvée" : "refusée")}",
+                                data = new
+                                {
+                                    transactionId = id,
+                                    type = type == "WITHDRAW" ? "retrait" : "dépôt",
+                                    montant = montant.ToString(),
+                                    status = request.Decision
+                                }
+                            };
+
+                            var pushJson = JsonSerializer.Serialize(expoPushMessage);
+                            var pushRequest = new HttpRequestMessage(HttpMethod.Post, "https://exp.host/--/api/v2/push/send");
+
+                            // Ajouter seulement les en-têtes Accept
+                            pushRequest.Headers.Add("Accept", "application/json");
+                            pushRequest.Headers.Add("Accept-encoding", "gzip, deflate");
+
+                            // Créer le contenu avec le type de contenu
+                            pushRequest.Content = new StringContent(
+                                pushJson,
+                                Encoding.UTF8,
+                                "application/json"  // Content-Type est défini ici
+                            );
+
+                            var pushResponse = await _httpClient.SendAsync(pushRequest);
+
+                            if (!pushResponse.IsSuccessStatusCode)
+                            {
+                                var errorContent = await pushResponse.Content.ReadAsStringAsync();
+                                _logger.LogError("Erreur lors de l'envoi de la notification Expo: {Status} {Error}",
+                                    pushResponse.StatusCode, errorContent);
+                            }
+                            else
+                            {
+                                _logger.LogInformation("Notification Expo envoyée avec succès pour {Email}", email);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Erreur lors de l'envoi de la notification Expo pour {Email}", email);
+                            // Ne pas bloquer la transaction si l'envoi de notification échoue
                         }
                     }
 
@@ -584,11 +598,11 @@ namespace Cryptomonnaie.Controllers
 
                             // D'abord, chercher le document Firebase avec le même email
                             var searchUrl2 = $"{_firebaseSettings.FirestoreUrl}/portefeuilles?key={_firebaseSettings.ApiKey}";
-                            var searchResponse = await _httpClient.GetAsync(searchUrl2);
-                            
-                            if (searchResponse.IsSuccessStatusCode)
+                            var searchResponses = await _httpClient.GetAsync(searchUrl2);
+
+                            if (searchResponses.IsSuccessStatusCode)
                             {
-                                var content = await searchResponse.Content.ReadAsStringAsync();
+                                var content = await searchResponses.Content.ReadAsStringAsync();
                                 var firebaseData = JsonSerializer.Deserialize<JsonElement>(content);
                                 string? firebaseDocumentId = null;
 
@@ -597,7 +611,7 @@ namespace Cryptomonnaie.Controllers
                                     foreach (var doc in documents.EnumerateArray())
                                     {
                                         var fields = doc.GetProperty("fields");
-                                        if (fields.TryGetProperty("email", out JsonElement emailField) && 
+                                        if (fields.TryGetProperty("email", out JsonElement emailField) &&
                                             emailField.GetProperty("stringValue").GetString() == userEmail)
                                         {
                                             // Extraire l'ID du document depuis son nom
@@ -632,11 +646,11 @@ namespace Cryptomonnaie.Controllers
                                     );
 
                                     var walletUpdateResponse = await _httpClient.PatchAsync(walletUpdateUrl, walletUpdateContent);
-                                    
+
                                     if (!walletUpdateResponse.IsSuccessStatusCode)
                                     {
                                         var errorContent = await walletUpdateResponse.Content.ReadAsStringAsync();
-                                        _logger.LogError("Échec de la mise à jour du solde Firebase. Status: {Status}, Error: {Error}", 
+                                        _logger.LogError("Échec de la mise à jour du solde Firebase. Status: {Status}, Error: {Error}",
                                             walletUpdateResponse.StatusCode, errorContent);
                                         await transaction.RollbackAsync();
                                         return StatusCode(500, new { message = "Erreur lors de la mise à jour du solde dans Firebase" });
@@ -667,6 +681,48 @@ namespace Cryptomonnaie.Controllers
                 return StatusCode(500, new { message = "Error processing transaction" });
             }
         }
+
+        [HttpPost("fcm-token")]
+        public async Task<IActionResult> UpdateFcmToken([FromBody] FcmTokenRequest request)
+        {
+            try
+            {
+                // Récupérer l'email de l'utilisateur depuis le token d'authentification
+                var token = Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrEmpty(token))
+                {
+                    return Unauthorized(new { message = "No token provided" });
+                }
+
+                using var connection = GetConnection();
+                await connection.OpenAsync();
+
+                // Mettre à jour le token FCM dans la table Utilisateur
+                var updateQuery = @"
+                    UPDATE Utilisateur 
+                    SET fcm_token = @fcmToken
+                    WHERE email = @email
+                    RETURNING id_utilisateur";
+
+                using var command = new NpgsqlCommand(updateQuery, connection);
+                command.Parameters.AddWithValue("@fcmToken", request.Token);
+                command.Parameters.AddWithValue("@email", request.Email);
+
+                var userId = await command.ExecuteScalarAsync();
+
+                if (userId == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+
+                return Ok(new { message = "FCM token updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating FCM token");
+                return StatusCode(500, new { message = "Error updating FCM token" });
+            }
+        }
     }
 
     public class CreateWalletRequest
@@ -683,4 +739,10 @@ namespace Cryptomonnaie.Controllers
     {
         public string Decision { get; set; } // "approved" or "rejected"
     }
-} 
+
+    public class FcmTokenRequest
+    {
+        public string Token { get; set; }
+        public string Email { get; set; }
+    }
+}

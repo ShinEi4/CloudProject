@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "723996625713",
+    "project_id": "cloud2-8c401",
+    "storage_bucket": "cloud2-8c401.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:723996625713:android:578666b91189c41376be10",
+        "android_client_info": {
+          "package_name": "com.anjely.cryptomobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuEH8lp281Lxsm_K2Mq5tz0w-K9cNvC2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

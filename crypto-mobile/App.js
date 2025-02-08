@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
@@ -7,11 +7,20 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import TabNavigator from './src/navigation/TabNavigator';
 import { initializeApp } from 'firebase/app';
 import firebaseConfig from './src/config/firebase-config';
+import * as Notifications from 'expo-notifications';
 
 const Stack = createNativeStackNavigator();
 
 // Initialiser Firebase une seule fois au démarrage de l'app
 const app = initializeApp(firebaseConfig);
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function App() {
   const [fontsLoaded] = useFonts({

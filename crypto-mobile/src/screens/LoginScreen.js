@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, Animated, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import MonBouton from '../components/MonBouton';
 import { authService } from '../services/authService';
+import useNotifications from '../hooks/useNotifications';
 
 const { width } = Dimensions.get('window');
 
@@ -9,6 +10,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [glowAnim] = useState(new Animated.Value(0));
+  const { sendNotification } = useNotifications();
 
   useEffect(() => {
     checkExistingSession();
@@ -71,20 +73,17 @@ export default function LoginScreen({ navigation }) {
       const response = await authService.login({ email, password });
       
       if (response.success) {
-        Alert.alert(
+        await sendNotification(
           'Connexion réussie',
-          'Bienvenue sur ItCoin !',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.replace('MainApp');
-              }
-            }
-          ]
+          'Bienvenue sur ItCoin !'
         );
+        navigation.replace('MainApp');
       }
     } catch (error) {
+      await sendNotification(
+        'Erreur de connexion',
+        error.message
+      );
       console.error('Erreur de connexion:', error);
       let errorMessage = 'Une erreur est survenue lors de la connexion';
       
