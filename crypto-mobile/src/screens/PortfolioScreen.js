@@ -237,23 +237,24 @@ function PortfolioContent() {
         <Text style={styles.totalValue}>Valeur totale: {totalValue.toFixed(2)}€</Text>
         {portfolio.map((item, index) => (
           <View key={`portfolio-${item.crypto}-${index}`} style={styles.cryptoCard}>
-            <Text style={styles.cryptoName}>{item.crypto}</Text>
-            <View style={styles.cryptoDetails}>
-              <Text style={styles.cryptoAmount}>Quantité: {item.montant.toFixed(6)}</Text>
-              <Text style={styles.cryptoValue}>Valeur: {item.valeur_totale.toFixed(2)}€</Text>
-              <Text style={styles.cryptoPrice}>Prix: {item.prix_actuel.toFixed(2)}€</Text>
+            <View style={styles.cryptoHeader}>
+              <View style={styles.cryptoTitleContainer}>
+                <Text style={styles.cryptoName}>{item.crypto}</Text>
+                <Text style={styles.cryptoPrice}>{item.prix_actuel.toFixed(2)}€</Text>
+              </View>
             </View>
-            <View style={styles.actionButtons}>
-              <MonBouton 
-                titre="ACHETER"
-                onPress={() => handleBuy(item)}
-                style={styles.buyButton}
-              />
-              <MonBouton 
-                titre="VENDRE"
-                onPress={() => handleSell(item)}
-                style={styles.sellButton}
-              />
+            
+            <View style={styles.divider} />
+            
+            <View style={styles.cryptoDetails}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Quantité</Text>
+                <Text style={styles.detailValue}>{item.montant.toFixed(2)}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Valeur totale</Text>
+                <Text style={styles.detailValue}>{item.valeur_totale.toFixed(2)}€</Text>
+              </View>
             </View>
           </View>
         ))}
@@ -522,36 +523,61 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   cryptoCard: {
-    backgroundColor: 'rgba(191, 182, 153, 0.1)',
+    backgroundColor: '#2A2D3E',
     borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#bfb699',
-    padding: 15,
-    marginBottom: 15,
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  cryptoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cryptoTitleContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   cryptoName: {
     fontSize: 18,
-    color: '#bfb699',
-    fontFamily: 'Orbitron',
-    marginBottom: 10,
-  },
-  cryptoDetails: {
-    marginBottom: 10,
-  },
-  cryptoAmount: {
+    fontWeight: 'bold',
     color: '#fff',
-    fontFamily: 'Exo2',
-    fontSize: 16,
-  },
-  cryptoValue: {
-    color: '#fff',
-    fontFamily: 'Exo2',
-    fontSize: 16,
   },
   cryptoPrice: {
-    color: '#fff',
-    fontFamily: 'Exo2',
     fontSize: 16,
+    color: '#BFB699',
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#3F4251',
+    marginVertical: 8,
+  },
+  cryptoDetails: {
+    marginTop: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#8F90A6',
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '500',
   },
   actionButtons: {
     flexDirection: 'row',
