@@ -13,7 +13,24 @@ import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import MonBouton from '../components/MonBouton';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, setDoc } from 'firebase/firestore';
+import { getApps, getApp, initializeApp } from 'firebase/app';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
+// 📌 Configuration Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCrCHzitWCYZZy4KekjOUaW233Fk47nZuY",
+  authDomain: "photo-42523.firebaseapp.com",
+  projectId: "photo-42523",
+  storageBucket: "photo-42523.firebasestorage.app",
+  messagingSenderId: "369707658277",
+  appId: "1:369707658277:web:d20dd9091b304857a923cc"
+};
+
+// 📌 Initialisation Firebase
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 const { width } = Dimensions.get('window');
 
@@ -22,8 +39,6 @@ export default function ProfileScreen({ navigation }) {
   const [walletBalance, setWalletBalance] = useState(0);
   const [profileImage, setProfileImage] = useState(null);
   const [userBalance, setUserBalance] = useState(0);
-  const auth = getAuth();
-  const db = getFirestore();
 
   useEffect(() => {
     loadUserData();
@@ -38,16 +53,23 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
 
-      // Récupérer les données supplémentaires de l'utilisateur depuis Firestore
+      // 🔹 Récupérer les données utilisateur
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       
+      const username = userDoc.exists() ? userDoc.data().username : currentUser.email.split('@')[0];
+      const profileImg = userDoc.exists() ? userDoc.data().profileImage : null;
+
       setUser({
         email: currentUser.email,
-        username: userDoc.exists() ? userDoc.data().username : currentUser.email.split('@')[0],
+        username: username,
         uid: currentUser.uid
       });
 
-      // Récupérer le solde du portefeuille depuis Firestore
+      if (profileImg) {
+        setProfileImage(profileImg);
+      }
+
+      // 🔹 Récupérer le solde du portefeuille
       const walletDoc = await getDoc(doc(db, 'portefeuilles', currentUser.uid));
       if (walletDoc.exists()) {
         setWalletBalance(walletDoc.data().solde || 0);
@@ -55,10 +77,7 @@ export default function ProfileScreen({ navigation }) {
 
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      Alert.alert(
-        'Erreur',
-        'Impossible de charger les données utilisateur'
-      );
+      Alert.alert('Erreur', 'Impossible de charger les données utilisateur');
     }
   };
 
@@ -74,22 +93,66 @@ export default function ProfileScreen({ navigation }) {
       'Photo de profil',
       'Choisissez une option',
       [
-        {
-          text: 'Prendre une photo',
-          onPress: takePicture
-        },
-        {
-          text: 'Choisir depuis la galerie',
-          onPress: pickImage
-        },
-        {
-          text: 'Annuler',
-          style: 'cancel'
-        }
+        { text: 'Prendre une photo', onPress: takePicture },
+        { text: 'Choisir depuis la galerie', onPress: pickImage },
+        { text: 'Annuler', style: 'cancel' }
       ]
     );
   };
 
+  // 📌 Uploader l'image vers Cloudinary
+  const uploadImageToCloudinary = async (imageUri) => {
+    const data = new FormData();
+    data.append("file", {
+      uri: imageUri,
+      type: "image/jpeg", 
+      name: "profile.jpg"
+    });
+    data.append("upload_preset", "profile_pictures");
+    data.append("cloud_name", "dlif5i6gl");
+
+    try {
+      const response = await fetch("https://api.cloudinary.com/v1_1/dlif5i6gl/image/upload", {
+        method: "POST",
+        body: data
+      });
+
+      const result = await response.json();
+      if (result.secure_url) {
+        setProfileImage(result.secure_url);
+        await saveProfileImageToFirestore(result.secure_url);
+      } else {
+        Alert.alert("Erreur", "Échec de l'upload vers Cloudinary");
+      }
+    } catch (error) {
+      console.error("Erreur d'upload Cloudinary :", error);
+      Alert.alert("Erreur", "Une erreur est survenue lors de l'upload");
+    }
+  };
+
+  // 📌 Sauvegarde de l'URL dans Firestore
+  // 📌 Sauvegarde de l'URL dans Firestore
+const saveProfileImageToFirestore = async (imageUrl) => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    const userDocRef = doc(db, "users", currentUser.uid);
+
+    // ✅ Log pour vérifier l'URL avant l'enregistrement
+    console.log("URL enregistrée dans Firestore :", imageUrl);
+
+    await setDoc(userDocRef, { profileImage: imageUrl }, { merge: true });
+
+    // ✅ Log pour confirmer que l'enregistrement a réussi
+    console.log("L'URL a été enregistrée avec succès !");
+  } catch (error) {
+    console.error("Erreur de sauvegarde :", error);
+  }
+};
+
+
+  // 📌 Prendre une photo
   const takePicture = async () => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -99,14 +162,14 @@ export default function ProfileScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
-        // Uploader l'image vers votre serveur ici
+        await uploadImageToCloudinary(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de prendre une photo');
+      Alert.alert("Erreur", "Impossible de prendre une photo");
     }
   };
 
+  // 📌 Sélectionner une image
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -117,50 +180,12 @@ export default function ProfileScreen({ navigation }) {
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
-        // Uploader l'image vers votre serveur ici
+        await uploadImageToCloudinary(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sélectionner une image');
+      Alert.alert("Erreur", "Impossible de sélectionner une image");
     }
   };
-
-  const loadUserBalance = async (email) => {
-    try {
-      console.log('Chargement du solde pour:', email);
-      
-      // Rechercher le portefeuille de l'utilisateur
-      const portefeuilleQuery = query(
-        collection(db, 'portefeuilles'),
-        where('email', '==', email)
-      );
-      
-      const querySnapshot = await getDocs(portefeuilleQuery);
-      
-      if (!querySnapshot.empty) {
-        const portefeuilleData = querySnapshot.docs[0].data();
-        const solde = portefeuilleData.solde || 0;
-        console.log('Solde trouvé:', solde);
-        setUserBalance(solde);
-        return solde;
-      } else {
-        console.log('Aucun portefeuille trouvé pour:', email);
-        setUserBalance(0);
-        return 0;
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement du solde:', error);
-      setUserBalance(0);
-      return 0;
-    }
-  };
-
-  // Charger le solde quand l'email change
-  useEffect(() => {
-    if (user?.email) {
-      loadUserBalance(user.email);
-    }
-  }, [user?.email]);
 
   return (
     <ScrollView style={styles.container}>
