@@ -26,11 +26,14 @@ export default function ProfileScreen({ navigation }) {
     checkCameraPermission();
   }, []);
 
+  // Charger les données de l'utilisateur (y compris la photo de profil)
   const loadUserData = async () => {
     try {
       const userData = await authService.getCurrentUser();
       setUser(userData);
-      // Charger le solde du portefeuille ici
+      if (userData.profileImage) {
+        setProfileImage(userData.profileImage);
+      }
     } catch (error) {
       console.error('Erreur de chargement:', error);
     }
@@ -48,22 +51,53 @@ export default function ProfileScreen({ navigation }) {
       'Photo de profil',
       'Choisissez une option',
       [
-        {
-          text: 'Prendre une photo',
-          onPress: takePicture
-        },
-        {
-          text: 'Choisir depuis la galerie',
-          onPress: pickImage
-        },
-        {
-          text: 'Annuler',
-          style: 'cancel'
-        }
+        { text: 'Prendre une photo', onPress: takePicture },
+        { text: 'Choisir depuis la galerie', onPress: pickImage },
+        { text: 'Annuler', style: 'cancel' }
       ]
     );
   };
 
+  // 📌 Fonction pour uploader l'image sur Cloudinary
+  const uploadImageToCloudinary = async (imageUri) => {
+    const data = new FormData();
+    data.append("file", {
+      uri: imageUri,
+      type: "image/jpeg", 
+      name: "profile.jpg"
+    });
+    data.append("upload_preset", "profile_pictures"); 
+    data.append("cloud_name", "dlif5i6gl"); 
+
+    try {
+      const response = await fetch("https://api.cloudinary.com/v1_1/dlif5i6gl/image/upload", {
+        method: "POST",
+        body: data
+      });
+
+      const result = await response.json();
+      if (result.secure_url) {
+        setProfileImage(result.secure_url); 
+        await saveProfileImage(result.secure_url); // Sauvegarder dans le backend
+      } else {
+        Alert.alert("Erreur", "Échec de l'upload vers Cloudinary");
+      }
+    } catch (error) {
+      console.error("Erreur d'upload Cloudinary :", error);
+      Alert.alert("Erreur", "Une erreur est survenue lors de l'upload");
+    }
+  };
+
+  // 📌 Fonction pour sauvegarder l'URL de l'image dans le backend
+  const saveProfileImage = async (imageUrl) => {
+    try {
+      await authService.updateUserProfile({ profileImage: imageUrl });
+    } catch (error) {
+      console.error("Erreur de sauvegarde :", error);
+    }
+  };
+
+  // 📌 Prendre une photo avec la caméra
   const takePicture = async () => {
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -74,13 +108,14 @@ export default function ProfileScreen({ navigation }) {
 
       if (!result.canceled) {
         setProfileImage(result.assets[0].uri);
-        // Uploader l'image vers votre serveur ici
+        await uploadImageToCloudinary(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de prendre une photo');
+      Alert.alert("Erreur", "Impossible de prendre une photo");
     }
   };
 
+  // 📌 Sélectionner une image depuis la galerie
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -92,10 +127,10 @@ export default function ProfileScreen({ navigation }) {
 
       if (!result.canceled) {
         setProfileImage(result.assets[0].uri);
-        // Uploader l'image vers votre serveur ici
+        await uploadImageToCloudinary(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sélectionner une image');
+      Alert.alert("Erreur", "Impossible de sélectionner une image");
     }
   };
 
@@ -260,4 +295,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Exo2',
   },
-}); 
+});
+
