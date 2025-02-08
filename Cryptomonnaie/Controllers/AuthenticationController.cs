@@ -168,6 +168,47 @@ namespace Cryptomonnaie.Controllers
             }
         }
 
+        private async Task CreateFirebaseUser(string userId, string email, string username)
+        {
+            try
+            {
+                var document = new
+                {
+                    fields = new
+                    {
+                        userId = new { stringValue = userId },
+                        email = new { stringValue = email },
+                        username = new { stringValue = username },
+                        createdAt = new { timestampValue = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+                    }
+                };
+
+                var url = $"{_firebaseSettings.FirestoreUrl}/users/{userId}?key={_firebaseSettings.ApiKey}";
+                
+                var response = await _httpClient.PatchAsync(url, 
+                    new StringContent(
+                        JsonSerializer.Serialize(document),
+                        Encoding.UTF8,
+                        "application/json"
+                    )
+                );
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Échec de création de l'utilisateur Firebase pour {UserId}. Erreur: {Error}", userId, error);
+                    throw new Exception("Échec de création de l'utilisateur Firebase");
+                }
+
+                _logger.LogInformation("Utilisateur Firebase créé avec succès pour {UserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erreur lors de la création de l'utilisateur Firebase");
+                throw;
+            }
+        }
+
         [HttpPost("mobile-register")]
         public async Task<IActionResult> MobileRegister([FromBody] RegisterRequest request)
         {
@@ -199,6 +240,9 @@ namespace Cryptomonnaie.Controllers
                 var firebaseResponseContent = await firebaseResponse.Content.ReadAsStringAsync();
                 var firebaseData = JsonSerializer.Deserialize<JsonElement>(firebaseResponseContent);
                 var firebaseUserId = firebaseData.GetProperty("localId").GetString();
+
+                // Créer le document utilisateur Firebase
+                await CreateFirebaseUser(firebaseUserId, request.Email, request.Username);
 
                 // Créer le portefeuille Firebase
                 await CreateFirebaseWallet(firebaseUserId, request.Email);
@@ -283,6 +327,9 @@ namespace Cryptomonnaie.Controllers
                 var firebaseResponseContent = await firebaseResponse.Content.ReadAsStringAsync();
                 var firebaseData = JsonSerializer.Deserialize<JsonElement>(firebaseResponseContent);
                 var firebaseUserId = firebaseData.GetProperty("localId").GetString();
+
+                // Créer le document utilisateur Firebase
+                await CreateFirebaseUser(firebaseUserId, request.Email, request.Username);
 
                 // Créer le portefeuille Firebase
                 await CreateFirebaseWallet(firebaseUserId, request.Email);
