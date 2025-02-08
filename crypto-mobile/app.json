@@ -33,7 +33,7 @@
         "android.permission.RECORD_AUDIO",
         "NOTIFICATIONS"
       ],
-      "package": "com.anjely.cryptomobile"
+      "package": "com.kenny4220.notification"
     },
     "plugins": [
       "expo-font",
