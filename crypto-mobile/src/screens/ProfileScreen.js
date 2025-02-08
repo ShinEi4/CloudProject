@@ -14,20 +14,11 @@ import * as ImagePicker from 'expo-image-picker';
 import MonBouton from '../components/MonBouton';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc, collection, query, where, getDocs, setDoc } from 'firebase/firestore';
-import { getApps, getApp, initializeApp } from 'firebase/app';
+import firebaseConfig from '../config/firebase-config';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
-// 📌 Configuration Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCrCHzitWCYZZy4KekjOUaW233Fk47nZuY",
-  authDomain: "photo-42523.firebaseapp.com",
-  projectId: "photo-42523",
-  storageBucket: "photo-42523.firebasestorage.app",
-  messagingSenderId: "369707658277",
-  appId: "1:369707658277:web:d20dd9091b304857a923cc"
-};
-
-// 📌 Initialisation Firebase
+// Initialisation Firebase
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -69,7 +60,7 @@ export default function ProfileScreen({ navigation }) {
         setProfileImage(profileImg);
       }
 
-      // 🔹 Récupérer le solde du portefeuille
+      //  Récupérer le solde du portefeuille
       const walletDoc = await getDoc(doc(db, 'portefeuilles', currentUser.uid));
       if (walletDoc.exists()) {
         setWalletBalance(walletDoc.data().solde || 0);
@@ -100,7 +91,7 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  // 📌 Uploader l'image vers Cloudinary
+  //  Uploader l'image vers Cloudinary
   const uploadImageToCloudinary = async (imageUri) => {
     const data = new FormData();
     data.append("file", {
@@ -130,27 +121,39 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // 📌 Sauvegarde de l'URL dans Firestore
-  // 📌 Sauvegarde de l'URL dans Firestore
-const saveProfileImageToFirestore = async (imageUrl) => {
-  try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
-
-    const userDocRef = doc(db, "users", currentUser.uid);
-
-    // ✅ Log pour vérifier l'URL avant l'enregistrement
-    console.log("URL enregistrée dans Firestore :", imageUrl);
-
-    await setDoc(userDocRef, { profileImage: imageUrl }, { merge: true });
-
-    // ✅ Log pour confirmer que l'enregistrement a réussi
-    console.log("L'URL a été enregistrée avec succès !");
-  } catch (error) {
-    console.error("Erreur de sauvegarde :", error);
-  }
-};
-
+  //Sauvegarde de l'URL dans Firestore
+  const saveProfileImageToFirestore = async (imageUrl) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) return;
+  
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDoc = await getDoc(userDocRef);
+  
+      let userData = {}; // Objet contenant les données de l'utilisateur
+  
+      if (userDoc.exists()) {
+        userData = userDoc.data();
+      }
+  
+      // 🔹 Vérification que `username` est bien conservé
+      const updatedUserData = {
+        userId: currentUser.uid,
+        email: currentUser.email,
+        username: userData.username || currentUser.email.split('@')[0], // Conserver `username`
+        profileImage: imageUrl, // Mettre à jour uniquement `profileImage`
+        createdAt: userData.createdAt || new Date(), // Garder `createdAt` si déjà existant
+      };
+  
+      await setDoc(userDocRef, updatedUserData, { merge: true });
+  
+      console.log("✅ L'URL de la photo a été enregistrée et le `username` conservé !");
+    } catch (error) {
+      console.error("❌ Erreur de sauvegarde :", error);
+    }
+  };
+  
+  
 
   // 📌 Prendre une photo
   const takePicture = async () => {
@@ -169,7 +172,7 @@ const saveProfileImageToFirestore = async (imageUrl) => {
     }
   };
 
-  // 📌 Sélectionner une image
+  //  Sélectionner une image
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
