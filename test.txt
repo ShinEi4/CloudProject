@@ -30,3 +30,7 @@ UPDATE Connexion
           FROM Connexion 
           WHERE id_utilisateur = 1 AND is_valid = FALSE
         );
+
+
+
+-- Changement
