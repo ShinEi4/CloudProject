@@ -211,14 +211,9 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>CRÉDITS</Text>
-          <Text style={styles.balanceAmount}>{walletBalance} €</Text>
-        </View>
-
         <View style={styles.balanceContainer}>
-          <Text style={styles.balanceLabel}>Solde disponible</Text>
-          <Text style={styles.balanceValue}>{userBalance.toFixed(2)}€</Text>
+          <Text style={styles.balanceLabel}>SOLDE DISPONIBLE</Text>
+          <Text style={styles.balanceValue}>{walletBalance} €</Text>
         </View>
 
         <View style={styles.actionButtons}>
