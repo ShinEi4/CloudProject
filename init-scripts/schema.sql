@@ -140,10 +140,48 @@ INSERT INTO DureeSession (duree) VALUES ('01:00:00');
 -- Insertion d'un utilisateur initial
 INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
 VALUES ('admin', 'admin@example.com', '9bb2e1c2f40c5ca2d6903a7729de79b078adfb770a4b601b05152d3246d29e6c', true, true);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user1', 'user1@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user2', 'user2@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user3', 'user3@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user4', 'user4@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user5', 'user5@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user6', 'user6@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user7', 'user7@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user8', 'user8@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user9', 'user9@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
+INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
+VALUES ('user10', 'user10@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
 
 -- Création d'un portefeuille pour l'utilisateur
 INSERT INTO portefeuille (id_utilisateur, solde)
 VALUES (1, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (2, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (3, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (4, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (5, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (6, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (7, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (8, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (9, 1000.00);
+INSERT INTO portefeuille (id_utilisateur, solde)
+VALUES (10, 1000.00);
 
 -- Insertion des cryptomonnaies initiales
 INSERT INTO Crypto (nom_crypto) VALUES 
