@@ -158,8 +158,6 @@ INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin)
 VALUES ('user8', 'user8@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
 INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
 VALUES ('user9', 'user9@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
-INSERT INTO Utilisateur (username, email, mdp, is_valid, is_admin) 
-VALUES ('user10', 'user10@example.com', '69ca33a2ff230f79150f8519c022d5072cd82177b0b8b4ad01c976f7996f9ab2', true, false);
 
 -- Création d'un portefeuille pour l'utilisateur
 INSERT INTO portefeuille (id_utilisateur, solde)
